@@ -580,7 +580,7 @@ async function renderLogHist() {
   const el = document.getElementById('log-hist');
   el.innerHTML = skeletonHTML();
   const res = await nAPI('POST', '/v1/databases/' + LOG_DB + '/query', {
-    sorts: [{ property: '記録日時', direction: 'descending' }],
+    sorts: [{ timestamp: 'created_time', direction: 'descending' }],
     page_size: 20
   });
   if (!res) {
