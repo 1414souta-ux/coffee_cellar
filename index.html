@@ -576,19 +576,40 @@ function selPlace(el) {
   el.classList.add('on');
 }
 
-function renderLogHist() {
-  const logs = loadLogCache().slice(0, 20);
+async function renderLogHist() {
   const el = document.getElementById('log-hist');
+  el.innerHTML = skeletonHTML();
+  const res = await nAPI('POST', '/v1/databases/' + LOG_DB + '/query', {
+    sorts: [{ property: '記録日時', direction: 'descending' }],
+    page_size: 20
+  });
+  if (!res) {
+    // fallback to local cache
+    const logs = loadLogCache().slice(0, 20);
+    if (!logs.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">📝</div><div class="empty-txt">No logs yet</div></div>'; return; }
+    el.innerHTML = logs.map(l => logCardHTML(l.name, l.grams, l.ts, l.place, l.memo)).join('');
+    return;
+  }
+  const logs = res.results.map(p => ({
+    name: p.properties['コーヒーの名前']?.title?.[0]?.plain_text || '',
+    grams: p.properties['使用グラム']?.number || null,
+    ts: p.properties['記録日時']?.date?.start || p.created_time,
+    place: p.properties['飲んだ場所']?.select?.name || '',
+    memo: p.properties['ひとことメモ']?.rich_text?.[0]?.plain_text || ''
+  }));
+  document.getElementById('log-sub').textContent = logs.length + '+ records';
   if (!logs.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">📝</div><div class="empty-txt">No logs yet</div></div>'; return; }
-  el.innerHTML = logs.map(l => {
-    const d = new Date(l.ts);
-    const ds = `${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
-    return `<div class="log-card">
-      <div class="lc-top"><div class="lc-name">${l.name}</div>${l.grams?`<div class="lc-g">${l.grams}<sub>g</sub></div>`:''}</div>
-      <div class="lc-meta">${[ds,l.place].filter(Boolean).join(' · ')}</div>
-      ${l.memo?`<div class="lc-memo">${l.memo}</div>`:''}
-    </div>`;
-  }).join('');
+  el.innerHTML = logs.map(l => logCardHTML(l.name, l.grams, l.ts, l.place, l.memo)).join('');
+}
+
+function logCardHTML(name, grams, ts, place, memo) {
+  const d = new Date(ts);
+  const ds = `${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
+  return `<div class="log-card">
+    <div class="lc-top"><div class="lc-name">${name}</div>${grams?`<div class="lc-g">${grams}<sub>g</sub></div>`:''}</div>
+    <div class="lc-meta">${[ds,place].filter(Boolean).join(' · ')}</div>
+    ${memo?`<div class="lc-memo">${memo}</div>`:''}
+  </div>`;
 }
 
 document.getElementById('btn-record').addEventListener('click', async () => {
