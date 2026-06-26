@@ -411,7 +411,7 @@ async function createLog(entry) {
   const props = {
     'コーヒーの名前': { title: [{ text: { content: entry.name } }] },
     'ひとことメモ': { rich_text: [{ text: { content: entry.memo || '' } }] },
-    '記録日時': { date: { start: new Date().toISOString(), is_datetime: true } }
+    '記録日時': { date: { start: new Date().toISOString() } }
   };
   if (entry.place) props['飲んだ場所'] = { select: { name: entry.place } };
   if (entry.grams) props['使用グラム'] = { number: entry.grams };
