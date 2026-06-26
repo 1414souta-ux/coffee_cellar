@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Bean Cellar</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#faf8f5;--bg-card:#fff;--bg-sub:#f2ede6;
+  --espresso:#1a0f08;--crema:#b07820;--crema-light:#f5ecd8;
+  --text-primary:#1a0f08;--text-secondary:#6b5040;--text-muted:#b0988a;
+  --border:rgba(26,15,8,0.08);--border-mid:rgba(26,15,8,0.14);
+  --green:#3a6644;--green-bg:#eaf2ec;
+  --amber:#9a6010;--amber-bg:#fdf0d8;
+  --red:#9a3020;--red-bg:#fcecea;
+  --nav-h:68px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--text-primary);font-family:'Playfair Display',serif;overscroll-behavior:none}
+.app{display:flex;flex-direction:column;height:100vh;max-width:430px;margin:0 auto;position:relative}
+.screen{flex:1;overflow-y:auto;padding-bottom:calc(var(--nav-h) + 12px);display:none}
+.screen.active{display:block}
+
+.header{padding:52px 20px 14px;position:sticky;top:0;background:var(--bg);z-index:10;border-bottom:0.5px solid var(--border-mid)}
+.header-eyebrow{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:4px;color:var(--crema);text-transform:uppercase;margin-bottom:2px}
+.header-title{font-family:'Bebas Neue',sans-serif;font-size:40px;line-height:1;color:var(--espresso);letter-spacing:2px}
+.header-title em{color:var(--crema);font-style:normal}
+.header-sub{font-family:'Space Mono',monospace;font-size:10px;color:var(--text-muted);margin-top:3px;letter-spacing:.5px}
+
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:#fff;border-top:0.5px solid var(--border-mid);display:flex;z-index:20;height:var(--nav-h)}
+.nav-btn{flex:1;padding:10px 0 16px;background:none;border:none;color:var(--text-muted);font-family:'Space Mono',monospace;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;transition:color .15s}
+.nav-btn.active{color:var(--crema)}
+.nav-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+
+/* STOCK CARDS */
+.beans-list{padding:16px;display:flex;flex-direction:column;gap:10px}
+.bean-card{background:var(--bg-card);border:0.5px solid var(--border-mid);border-radius:16px;padding:18px;cursor:pointer;transition:box-shadow .15s,transform .1s}
+.bean-card:active{transform:scale(0.985)}
+.bean-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
+.bean-name{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--text-primary);line-height:1.3;flex:1;margin-right:10px}
+.bean-status{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:1px;padding:3px 8px;border-radius:99px;flex-shrink:0;font-weight:700;text-transform:uppercase}
+.status-ok{background:var(--green-bg);color:var(--green)}
+.status-low{background:var(--amber-bg);color:var(--amber)}
+.bean-meta{font-family:'Space Mono',monospace;font-size:10px;color:var(--text-muted);margin-bottom:14px;letter-spacing:.5px}
+.bean-badges{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px}
+.badge{font-family:'Space Mono',monospace;font-size:9px;padding:2px 7px;border-radius:4px;background:var(--bg-sub);color:var(--text-secondary)}
+.grams-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.grams-remain{font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--espresso);line-height:1;letter-spacing:1px}
+.grams-remain sub{font-size:16px;color:var(--text-muted)}
+.grams-total{font-family:'Space Mono',monospace;font-size:10px;color:var(--text-muted)}
+.progress-track{height:4px;background:var(--bg-sub);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;border-radius:2px;transition:width .4s}
+.fill-high{background:var(--green)}.fill-mid{background:var(--crema)}.fill-low{background:var(--red)}
+.bean-memo{font-family:'Playfair Display',serif;font-style:italic;font-size:12px;color:var(--text-muted);margin-top:12px;padding-top:12px;border-top:0.5px solid var(--border);line-height:1.6;cursor:text}
+
+.empty{text-align:center;padding:64px 24px}
+.empty-icon{font-size:36px;margin-bottom:14px;opacity:.25}
+.empty-text{font-family:'Space Mono',monospace;font-size:11px;color:var(--text-muted);letter-spacing:1px;line-height:2.2}
+.loading{text-align:center;padding:60px 24px;font-family:'Space Mono',monospace;font-size:11px;color:var(--text-muted);letter-spacing:2px}
+.loading::after{content:'...';animation:blink 1s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* STOCK MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(26,15,8,.35);z-index:50;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(2px)}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:24px 24px 0 0;padding:20px 24px 44px;width:100%;max-width:430px;max-height:90vh;overflow-y:auto}
+.modal-handle{width:36px;height:4px;background:var(--border-mid);border-radius:2px;margin:0 auto 22px}
+.modal-bean-name{font-family:'Playfair Display',serif;font-size:19px;font-weight:700;color:var(--text-primary);margin-bottom:3px;line-height:1.3}
+.modal-bean-meta{font-family:'Space Mono',monospace;font-size:10px;color:var(--text-muted);margin-bottom:18px}
+.modal-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--crema);text-transform:uppercase;margin-bottom:8px}
+.modal-input-wrap{position:relative;margin-bottom:14px}
+.modal-input{width:100%;background:var(--bg);border:1px solid var(--border-mid);border-radius:12px;padding:14px 50px 14px 16px;font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--espresso);-webkit-appearance:none}
+.modal-input:focus{outline:none;border-color:var(--crema)}
+.modal-unit{position:absolute;right:16px;top:50%;transform:translateY(-50%);font-family:'Space Mono',monospace;font-size:12px;color:var(--text-muted)}
+.modal-quick{display:flex;gap:8px;margin-bottom:22px}
+.quick-btn{flex:1;padding:9px 0;background:var(--bg-sub);border:none;border-radius:10px;font-family:'Space Mono',monospace;font-size:11px;color:var(--text-secondary);cursor:pointer;transition:all .12s}
+.quick-btn:active{background:var(--crema-light);color:var(--crema)}
+.modal-memo-wrap{margin-bottom:18px}
+.modal-memo-input{width:100%;background:var(--bg);border:0.5px solid var(--border-mid);border-radius:10px;padding:10px 14px;font-family:'Playfair Display',serif;font-style:italic;font-size:14px;color:var(--text-secondary);resize:none;min-height:60px;line-height:1.5}
+.modal-memo-input:focus{outline:none;border-color:var(--crema)}
+.modal-actions{display:flex;gap:10px}
+.btn-cancel{flex:1;padding:14px;background:var(--bg-sub);border:none;border-radius:12px;font-family:'Space Mono',monospace;font-size:11px;color:var(--text-secondary);cursor:pointer;letter-spacing:1px}
+.btn-save{flex:2;padding:14px;background:var(--espresso);border:none;border-radius:12px;font-family:'Bebas Neue',sans-serif;font-size:22px;color:#fff;cursor:pointer;letter-spacing:2px}
+.btn-save:active{opacity:.85}
+.btn-archive{width:100%;padding:12px;background:none;border:0.5px solid var(--border-mid);border-radius:12px;font-family:'Space Mono',monospace;font-size:10px;color:var(--text-muted);cursor:pointer;margin-top:10px;letter-spacing:1px}
+.btn-archive:active{color:var(--red);border-color:var(--red)}
+
+/* FORM */
+.form-section{padding:20px}
+.form-group{margin-bottom:14px}
+.form-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2.5px;color:var(--crema);text-transform:uppercase;margin-bottom:6px;display:block}
+.form-input{width:100%;background:#fff;border:0.5px solid var(--border-mid);border-radius:10px;padding:12px 14px;font-family:'Playfair Display',serif;font-size:15px;color:var(--text-primary);-webkit-appearance:none}
+.form-input:focus{outline:none;border-color:var(--crema)}
+.form-input::placeholder{color:var(--text-muted)}
+.form-2col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form-select{width:100%;background:#fff;border:0.5px solid var(--border-mid);border-radius:10px;padding:12px 14px;font-family:'Space Mono',monospace;font-size:11px;color:var(--text-primary);-webkit-appearance:none;cursor:pointer}
+.form-select:focus{outline:none;border-color:var(--crema)}
+.btn-primary{width:100%;padding:16px;background:var(--espresso);border:none;border-radius:12px;font-family:'Bebas Neue',sans-serif;font-size:22px;color:#fff;cursor:pointer;letter-spacing:2px;margin-top:8px}
+.btn-primary:active{opacity:.85}
+.btn-primary.loading-btn{opacity:.6;pointer-events:none}
+
+/* ROASTER INPUT — obscura fixed + free text */
+.roaster-wrap{display:flex;gap:8px;align-items:center}
+.roaster-fixed{font-family:'Space Mono',monospace;font-size:11px;background:var(--espresso);color:#fff;border-radius:8px;padding:10px 14px;white-space:nowrap;flex-shrink:0}
+.roaster-free{flex:1;background:#fff;border:0.5px solid var(--border-mid);border-radius:10px;padding:12px 14px;font-family:'Playfair Display',serif;font-size:15px;color:var(--text-primary);-webkit-appearance:none}
+.roaster-free:focus{outline:none;border-color:var(--crema)}
+.roaster-free::placeholder{color:var(--text-muted)}
+
+/* LOG PICKER */
+.bean-picker{display:flex;gap:8px;overflow-x:auto;padding:0 0 4px;margin-bottom:4px;scrollbar-width:none}
+.bean-picker::-webkit-scrollbar{display:none}
+.picker-chip{flex-shrink:0;padding:7px 12px;border:0.5px solid var(--border-mid);border-radius:99px;font-family:'Space Mono',monospace;font-size:10px;color:var(--text-secondary);background:#fff;cursor:pointer;white-space:nowrap;transition:all .12s}
+.picker-chip.selected{background:var(--espresso);color:#fff;border-color:var(--espresso)}
+.picker-chip.free{border-style:dashed}
+
+/* LOG HISTORY */
+.log-list{padding:0 16px;display:flex;flex-direction:column;gap:8px}
+.log-card{background:#fff;border:0.5px solid var(--border);border-radius:12px;padding:12px 14px}
+.log-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
+.log-name{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--text-primary);line-height:1.3;flex:1;margin-right:8px}
+.log-grams{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--crema);letter-spacing:1px;white-space:nowrap}
+.log-grams sub{font-size:11px}
+.log-meta{font-family:'Space Mono',monospace;font-size:10px;color:var(--text-muted);margin-bottom:4px}
+.log-memo{font-family:'Playfair Display',serif;font-style:italic;font-size:12px;color:var(--text-muted);line-height:1.5}
+
+.place-chips{display:flex;gap:8px;margin-bottom:0}
+.place-chip{flex:1;padding:9px 0;border:0.5px solid var(--border-mid);border-radius:10px;font-family:'Space Mono',monospace;font-size:10px;color:var(--text-secondary);background:#fff;cursor:pointer;text-align:center;transition:all .12s}
+.place-chip.selected{background:var(--espresso);color:#fff;border-color:var(--espresso)}
+
+/* ARCHIVE */
+.archive-section{padding:0 16px}
+.archive-card{background:#fff;border:0.5px solid var(--border);border-radius:14px;padding:16px;margin-bottom:10px}
+.archive-name{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--text-secondary);margin-bottom:3px}
+.archive-meta{font-family:'Space Mono',monospace;font-size:10px;color:var(--text-muted);margin-bottom:8px}
+.archive-memo{font-family:'Playfair Display',serif;font-style:italic;font-size:12px;color:var(--text-muted);line-height:1.5;margin-bottom:10px;padding-top:8px;border-top:0.5px solid var(--border)}
+.archive-actions{display:flex;gap:8px}
+.archive-restore{flex:1;padding:8px 0;background:none;border:0.5px solid var(--border-mid);border-radius:8px;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--crema);cursor:pointer;text-align:center}
+.archive-delete{padding:8px 14px;background:none;border:0.5px solid var(--border-mid);border-radius:8px;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--text-muted);cursor:pointer}
+.archive-delete:active{color:var(--red);border-color:var(--red)}
+
+/* NOTION BAR */
+.notion-bar{display:flex;align-items:center;gap:6px;padding:8px 16px;font-family:'Space Mono',monospace;font-size:10px;color:var(--text-muted);border-bottom:0.5px solid var(--border)}
+.notion-dot{width:6px;height:6px;border-radius:50%;background:var(--text-muted);flex-shrink:0}
+.notion-dot.connected{background:var(--green)}
+.notion-setup-btn{margin-left:auto;font-family:'Space Mono',monospace;font-size:9px;color:var(--crema);background:none;border:0.5px solid var(--border-mid);border-radius:6px;padding:3px 8px;cursor:pointer;letter-spacing:1px}
+
+.section-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--text-muted);text-transform:uppercase;padding:16px 16px 8px}
+
+.toast{position:fixed;bottom:calc(var(--nav-h) + 12px);left:50%;transform:translateX(-50%) translateY(10px);background:var(--espresso);border-radius:10px;padding:10px 20px;font-family:'Space Mono',monospace;font-size:11px;color:#fff;letter-spacing:1px;z-index:60;opacity:0;transition:all .22s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- STOCK -->
+  <div class="screen active" id="screen-inventory">
+    <div class="header">
+      <div class="header-eyebrow">Bean Cellar</div>
+      <div class="header-title">STOCK <em id="bean-count">—</em></div>
+      <div class="header-sub" id="total-grams-label">—</div>
+    </div>
+    <div class="beans-list" id="beans-list"><div class="loading">Loading</div></div>
+  </div>
+
+  <!-- LOG -->
+  <div class="screen" id="screen-log">
+    <div class="header">
+      <div class="header-eyebrow">Bean Cellar</div>
+      <div class="header-title">LOG <em>IT</em></div>
+      <div class="header-sub" id="log-count-label">—</div>
+    </div>
+    <div class="notion-bar">
+      <div class="notion-dot" id="notion-dot"></div>
+      <span id="notion-status-text">Notion未接続</span>
+      <button class="notion-setup-btn" onclick="setupNotion()">接続設定</button>
+    </div>
+    <div class="form-section" style="padding-bottom:8px">
+      <div class="form-group">
+        <label class="form-label">Bean</label>
+        <div class="bean-picker" id="bean-picker"></div>
+        <input class="form-input" id="log-name-free" type="text" placeholder="または名前を入力" style="margin-top:8px">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Grams used</label>
+        <div style="position:relative">
+          <input class="form-input" id="log-grams" type="number" placeholder="17" min="1" inputmode="numeric" style="padding-right:36px">
+          <span style="position:absolute;right:14px;top:50%;transform:translateY(-50%);font-family:'Space Mono',monospace;font-size:12px;color:var(--text-muted)">g</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Place</label>
+        <div class="place-chips">
+          <button class="place-chip selected" data-place="家" onclick="selectPlace(this)">家</button>
+          <button class="place-chip" data-place="カフェ" onclick="selectPlace(this)">カフェ</button>
+          <button class="place-chip" data-place="外（職場・移動中など）" onclick="selectPlace(this)">外</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Memo</label>
+        <input class="form-input" id="log-memo" type="text" placeholder="味・気分・シーンなど">
+      </div>
+      <button class="btn-primary" id="btn-log-submit">RECORD</button>
+    </div>
+    <div class="section-label">Recent</div>
+    <div class="log-list" id="log-list"><div class="loading">Loading</div></div>
+  </div>
+
+  <!-- NEW BEAN -->
+  <div class="screen" id="screen-add">
+    <div class="header">
+      <div class="header-eyebrow">Bean Cellar</div>
+      <div class="header-title">NEW <em>BEAN</em></div>
+    </div>
+    <div class="form-section">
+      <div class="form-group">
+        <label class="form-label">Bean Name</label>
+        <input class="form-input" id="add-name" type="text" placeholder="例：エチオピア タラトゥ">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Roaster</label>
+        <div class="roaster-wrap">
+          <span class="roaster-fixed">obscura</span>
+          <input class="roaster-free" id="add-roaster-free" type="text" placeholder="または他のロースター名">
+        </div>
+      </div>
+      <div class="form-2col">
+        <div class="form-group">
+          <label class="form-label">Roast Date</label>
+          <input class="form-input" id="add-roast-date" type="date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Grams</label>
+          <input class="form-input" id="add-grams" type="number" placeholder="200" min="1">
+        </div>
+      </div>
+      <div class="form-2col">
+        <div class="form-group">
+          <label class="form-label">Roast Level</label>
+          <select class="form-select" id="add-roast-level">
+            <option value="">—</option>
+            <option>浅煎り</option><option>中浅煎り</option><option>中煎り</option>
+            <option>中深煎り</option><option>深煎り</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Process</label>
+          <select class="form-select" id="add-process">
+            <option value="">—</option>
+            <option>Washed</option><option>Natural</option><option>Honey</option><option>その他</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Memo</label>
+        <input class="form-input" id="add-memo" type="text" placeholder="抽出メモや購入理由など">
+      </div>
+      <button class="btn-primary" id="btn-add-submit">ADD TO STOCK</button>
+    </div>
+  </div>
+
+  <!-- DONE -->
+  <div class="screen" id="screen-archive">
+    <div class="header">
+      <div class="header-eyebrow">Bean Cellar</div>
+      <div class="header-title">ALL <em>DONE</em></div>
+    </div>
+    <div style="height:12px"></div>
+    <div class="archive-section" id="archive-list"><div class="loading">Loading</div></div>
+  </div>
+
+  <nav class="bottom-nav">
+    <button class="nav-btn active" onclick="switchScreen('inventory')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Stock
+    </button>
+    <button class="nav-btn" onclick="switchScreen('log')">
+      <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Log
+    </button>
+    <button class="nav-btn" onclick="switchScreen('add')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>New
+    </button>
+    <button class="nav-btn" onclick="switchScreen('archive')">
+      <svg viewBox="0 0 24 24"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>Done
+    </button>
+  </nav>
+</div>
+
+<!-- STOCK UPDATE MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-bean-name" id="modal-name">—</div>
+    <div class="modal-bean-meta" id="modal-meta">—</div>
+
+    <div class="modal-label">Remaining Grams</div>
+    <div class="modal-input-wrap">
+      <input class="modal-input" id="modal-grams" type="number" min="0" inputmode="numeric">
+      <span class="modal-unit">g</span>
+    </div>
+    <div class="modal-quick">
+      <button class="quick-btn" onclick="subtractGrams(13)">−13g</button>
+      <button class="quick-btn" onclick="subtractGrams(14)">−14g</button>
+      <button class="quick-btn" onclick="subtractGrams(16)">−16g</button>
+      <button class="quick-btn" onclick="subtractGrams(18)">−18g</button>
+    </div>
+
+    <div class="modal-memo-wrap">
+      <div class="modal-label">Memo</div>
+      <textarea class="modal-memo-input" id="modal-memo" placeholder="メモを編集…"></textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" onclick="saveModal()">SAVE</button>
+    </div>
+    <button class="btn-archive" onclick="archiveBean()">All done — move to archive</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SK='bean_cellar_v5', LK='bean_log_v4', TK='notion_token';
+const NOTION_LOG_DB='dd4407e7158d4c58b895bd8d01f90700';
+
+const loadStock=()=>{try{return JSON.parse(localStorage.getItem(SK)||'[]')}catch{return[]}};
+const saveStock=d=>localStorage.setItem(SK,JSON.stringify(d));
+const loadLogs=()=>{try{return JSON.parse(localStorage.getItem(LK)||'[]')}catch{return[]}};
+const saveLogs=d=>localStorage.setItem(LK,JSON.stringify(d));
+const getToken=()=>localStorage.getItem(TK)||'';
+
+async function notionReq(method,path,body){
+  const token=getToken(); if(!token) return null;
+  try{
+    const r=await fetch('https://api.notion.com'+path,{method,headers:{'Authorization':'Bearer '+token,'Notion-Version':'2022-06-28','Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});
+    if(!r.ok){console.error(await r.text());return null;}
+    return r.json();
+  }catch(e){console.error(e);return null;}
+}
+async function notionAddLog(entry){
+  return notionReq('POST','/v1/pages',{parent:{database_id:NOTION_LOG_DB},properties:{
+    'コーヒーの名前':{title:[{text:{content:entry.name}}]},
+    'ひとことメモ':{rich_text:[{text:{content:entry.memo||''}}]},
+    '飲んだ場所':{select:entry.place?{name:entry.place}:null},
+    '使用グラム':{number:entry.grams||null},
+    'ロースター':{select:entry.roaster?{name:entry.roaster}:null},
+    '焙煎度':{select:entry.roastLevel?{name:entry.roastLevel}:null},
+    '精製方法':{select:entry.process?{name:entry.process}:null},
+    '記録日時':{date:{start:new Date().toISOString(),is_datetime:true}}
+  }});
+}
+
+function updateNotionStatus(){
+  const token=getToken();
+  document.getElementById('notion-dot').className='notion-dot'+(token?' connected':'');
+  document.getElementById('notion-status-text').textContent=token?'Notion接続済み — 自動同期':'Notion未接続 — ローカル保存';
+}
+function setupNotion(){
+  const t=prompt('Notion Integration Token\n（secret_xxxxx）',getToken()||'');
+  if(t!==null){t.trim()?localStorage.setItem(TK,t.trim()):localStorage.removeItem(TK);showToast('設定を保存しました');updateNotionStatus();}
+}
+
+function seedIfEmpty(){
+  if(loadStock().length) return;
+  saveStock([
+    {id:'d1',name:'obscura サマーブレンド',roaster:'obscura',roastDate:'2026-06-10',totalGrams:200,remainGrams:120,roastLevel:'中浅煎り',process:'Natural',status:'IN STOCK',memo:'アイスが特にうまい。氷は後入れが正解。'},
+    {id:'d2',name:'obscura ルワンダ ギトWCS',roaster:'obscura',roastDate:'2026-06-20',totalGrams:150,remainGrams:140,roastLevel:'浅煎り',process:'Honey',status:'IN STOCK',memo:'ルワンダフェアにて'},
+    {id:'d3',name:'ジグジグ タンザニア',roaster:'ジグジグ',roastDate:'2026-06-05',totalGrams:200,remainGrams:60,roastLevel:'中深煎り',process:'Washed',status:'LOW',memo:'突き抜けない心地よい酸がいい。アイスでも◎'}
+  ]);
+}
+
+let currentScreen='inventory';
+function switchScreen(name){
+  currentScreen=name;
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  document.querySelectorAll('.nav-btn')[['inventory','log','add','archive'].indexOf(name)].classList.add('active');
+  if(name==='inventory') renderInventory();
+  if(name==='log'){renderBeanPicker();renderLogHistory();}
+  if(name==='archive') renderArchive();
+}
+
+function daysSince(d){if(!d)return null;return Math.floor((Date.now()-new Date(d))/86400000);}
+function fillClass(p){return p>50?'fill-high':p>20?'fill-mid':'fill-low';}
+
+function renderInventory(){
+  const beans=loadStock().filter(b=>b.status!=='DONE');
+  document.getElementById('bean-count').textContent=beans.length;
+  const totalG=beans.reduce((s,b)=>s+(b.remainGrams||0),0);
+  document.getElementById('total-grams-label').textContent=totalG+'g remaining · '+beans.length+' bean'+(beans.length!==1?'s':'');
+  const el=document.getElementById('beans-list');
+  if(!beans.length){el.innerHTML='<div class="empty"><div class="empty-icon">☕</div><div class="empty-text">No beans in stock<br>Add one from NEW</div></div>';return;}
+  el.innerHTML=beans.map(b=>{
+    const pct=Math.round((b.remainGrams/b.totalGrams)*100);
+    const days=daysSince(b.roastDate);
+    const low=b.status==='LOW'||pct<=20;
+    const badges=[b.roastLevel,b.process].filter(Boolean);
+    const meta=[b.roaster,days!==null?'Day '+days:''].filter(Boolean).join(' · ');
+    return`<div class="bean-card" onclick="openModal('${b.id}')">
+      <div class="bean-card-top"><div class="bean-name">${b.name}</div><span class="bean-status ${low?'status-low':'status-ok'}">${low?'LOW':'IN STOCK'}</span></div>
+      <div class="bean-meta">${meta}</div>
+      ${badges.length?`<div class="bean-badges">${badges.map(t=>`<span class="badge">${t}</span>`).join('')}</div>`:''}
+      <div class="grams-row"><div class="grams-remain">${b.remainGrams}<sub>g</sub></div><div class="grams-total">/ ${b.totalGrams}g</div></div>
+      <div class="progress-track"><div class="progress-fill ${fillClass(pct)}" style="width:${pct}%"></div></div>
+      ${b.memo?`<div class="bean-memo">${b.memo}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+let currentModal=null;
+function openModal(id){
+  const b=loadStock().find(x=>x.id===id); if(!b) return;
+  currentModal=id;
+  document.getElementById('modal-name').textContent=b.name;
+  const days=daysSince(b.roastDate);
+  document.getElementById('modal-meta').textContent=[b.roaster,days!==null?'Day '+days:''].filter(Boolean).join(' · ');
+  document.getElementById('modal-grams').value=b.remainGrams;
+  document.getElementById('modal-memo').value=b.memo||'';
+  document.getElementById('modal').classList.add('open');
+  setTimeout(()=>document.getElementById('modal-grams').focus(),250);
+}
+function closeModal(){document.getElementById('modal').classList.remove('open');currentModal=null;}
+function subtractGrams(g){const i=document.getElementById('modal-grams');i.value=Math.max(0,parseInt(i.value||0)-g);}
+function saveModal(){
+  if(!currentModal) return;
+  const beans=loadStock();
+  const idx=beans.findIndex(b=>b.id===currentModal); if(idx<0) return;
+  const val=Math.max(0,parseInt(document.getElementById('modal-grams').value)||0);
+  beans[idx].remainGrams=val;
+  beans[idx].memo=document.getElementById('modal-memo').value.trim();
+  const pct=val/beans[idx].totalGrams;
+  beans[idx].status=pct<=0?'DONE':pct<=0.2?'LOW':'IN STOCK';
+  saveStock(beans); closeModal(); renderInventory(); showToast('Updated');
+}
+function archiveBean(){
+  if(!currentModal) return;
+  const beans=loadStock();
+  const idx=beans.findIndex(b=>b.id===currentModal); if(idx<0) return;
+  beans[idx].status='DONE'; beans[idx].remainGrams=0;
+  saveStock(beans); closeModal(); renderInventory(); showToast('Archived ☕');
+}
+document.getElementById('modal').addEventListener('click',e=>{if(e.target===document.getElementById('modal'))closeModal();});
+
+let selectedBeanId=null, selectedPlace='家';
+
+function renderBeanPicker(){
+  const beans=loadStock().filter(b=>b.status!=='DONE');
+  const picker=document.getElementById('bean-picker');
+  picker.innerHTML=beans.map(b=>`<button class="picker-chip${selectedBeanId===b.id?' selected':''}" onclick="selectBean('${b.id}',this)">${b.name}</button>`).join('')+
+    `<button class="picker-chip free${!selectedBeanId?' selected':''}" onclick="selectBean(null,this)">フリー入力</button>`;
+  document.getElementById('log-name-free').style.display=selectedBeanId?'none':'block';
+  updateLogCount();
+}
+function selectBean(id,el){
+  selectedBeanId=id;
+  document.querySelectorAll('.picker-chip').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('log-name-free').style.display=id?'none':'block';
+}
+function selectPlace(el){
+  selectedPlace=el.dataset.place;
+  document.querySelectorAll('.place-chip').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function updateLogCount(){
+  document.getElementById('log-count-label').textContent=loadLogs().length+' records total';
+}
+function renderLogHistory(){
+  const logs=loadLogs().slice(0,20);
+  const el=document.getElementById('log-list');
+  updateLogCount();
+  if(!logs.length){el.innerHTML='<div class="empty"><div class="empty-icon">📝</div><div class="empty-text">No logs yet</div></div>';return;}
+  el.innerHTML=logs.map(l=>{
+    const d=new Date(l.ts);
+    const ds=`${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
+    return`<div class="log-card">
+      <div class="log-card-top"><div class="log-name">${l.name}</div>${l.grams?`<div class="log-grams">${l.grams}<sub>g</sub></div>`:''}</div>
+      <div class="log-meta">${[ds,l.place].filter(Boolean).join(' · ')}</div>
+      ${l.memo?`<div class="log-memo">${l.memo}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+document.getElementById('btn-log-submit').addEventListener('click',async()=>{
+  const bean=selectedBeanId?loadStock().find(b=>b.id===selectedBeanId):null;
+  const name=bean?bean.name:document.getElementById('log-name-free').value.trim();
+  if(!name){showToast('Bean name is required');return;}
+  const grams=parseInt(document.getElementById('log-grams').value)||null;
+  const memo=document.getElementById('log-memo').value.trim();
+  const entry={id:'l'+Date.now(),name,memo,grams,place:selectedPlace,ts:new Date().toISOString(),roaster:bean?.roaster||'',roastLevel:bean?.roastLevel||'',process:bean?.process||''};
+  if(bean&&grams){
+    const beans=loadStock();
+    const idx=beans.findIndex(b=>b.id===selectedBeanId);
+    if(idx>=0){beans[idx].remainGrams=Math.max(0,(beans[idx].remainGrams||0)-grams);const pct=beans[idx].remainGrams/beans[idx].totalGrams;beans[idx].status=pct<=0?'DONE':pct<=0.2?'LOW':'IN STOCK';saveStock(beans);}
+  }
+  const logs=loadLogs(); logs.unshift(entry); saveLogs(logs);
+  const btn=document.getElementById('btn-log-submit');
+  btn.classList.add('loading-btn'); btn.textContent='SAVING...';
+  const ok=await notionAddLog(entry);
+  btn.classList.remove('loading-btn'); btn.textContent='RECORD';
+  document.getElementById('log-memo').value='';
+  document.getElementById('log-grams').value='';
+  document.getElementById('log-name-free').value='';
+  showToast(ok?'Saved to Notion ✓':getToken()?'Saved locally':'Saved locally');
+  renderLogHistory(); renderBeanPicker();
+});
+
+document.getElementById('btn-add-submit').addEventListener('click',()=>{
+  const name=document.getElementById('add-name').value.trim();
+  if(!name){showToast('Bean name is required');return;}
+  const roasterFree=document.getElementById('add-roaster-free').value.trim();
+  // obscura固定 or フリー入力。フリー入力が空ならobscura
+  const roaster=roasterFree||'obscura';
+  const g=parseInt(document.getElementById('add-grams').value)||200;
+  const beans=loadStock();
+  beans.unshift({id:'b'+Date.now(),name,roaster,roastDate:document.getElementById('add-roast-date').value,totalGrams:g,remainGrams:g,roastLevel:document.getElementById('add-roast-level').value,process:document.getElementById('add-process').value,memo:document.getElementById('add-memo').value.trim(),status:'IN STOCK'});
+  saveStock(beans);
+  ['add-name','add-grams','add-memo','add-roaster-free'].forEach(id=>document.getElementById(id).value='');
+  ['add-roast-level','add-process'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('add-roast-date').value=new Date().toISOString().split('T')[0];
+  showToast('Added to stock'); switchScreen('inventory');
+});
+
+function renderArchive(){
+  const done=loadStock().filter(b=>b.status==='DONE');
+  const el=document.getElementById('archive-list');
+  if(!done.length){el.innerHTML='<div class="empty"><div class="empty-icon">📦</div><div class="empty-text">Nothing archived yet</div></div>';return;}
+  el.innerHTML=done.map(b=>`
+    <div class="archive-card">
+      <div class="archive-name">${b.name}</div>
+      <div class="archive-meta">${[b.roaster,b.roastLevel,b.process,b.totalGrams+'g'].filter(Boolean).join(' · ')}</div>
+      ${b.memo?`<div class="archive-memo">${b.memo}</div>`:''}
+      <div class="archive-actions">
+        <button class="archive-restore" onclick="restoreBean('${b.id}')">↩ Restore to stock</button>
+        <button class="archive-delete" onclick="deleteBean('${b.id}')">🗑 Delete</button>
+      </div>
+    </div>`).join('');
+}
+function restoreBean(id){
+  const beans=loadStock();
+  const idx=beans.findIndex(b=>b.id===id); if(idx<0) return;
+  beans[idx].status='IN STOCK'; beans[idx].remainGrams=beans[idx].totalGrams;
+  saveStock(beans); renderArchive(); showToast('Restored to stock');
+}
+function deleteBean(id){
+  if(!confirm('この豆を削除しますか？')) return;
+  saveStock(loadStock().filter(b=>b.id!==id));
+  renderArchive(); showToast('Deleted');
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2000);
+}
+
+document.getElementById('add-roast-date').value=new Date().toISOString().split('T')[0];
+seedIfEmpty(); updateNotionStatus(); renderInventory();
+</script>
+</body>
+</html>
