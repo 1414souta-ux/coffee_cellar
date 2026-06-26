@@ -307,8 +307,8 @@ html,body{height:100%;background:var(--bg);color:var(--text-primary);font-family
 <script>
 // ── CONFIG ──
 const PROXY   = 'https://notion-proxy.1414souta.workers.dev';
-const STOCK_DB = 'fd4194d3-b379-4ea8-88b8-e4a8fd2bdc03';
-const LOG_DB   = 'dd4407e7-158d-4c58-b895-bd8d01f90700';
+const STOCK_DB = '77a292ef-511d-41c0-857b-62cd8c15a851';
+const LOG_DB   = '38b285ba-a83a-801a-96f7-cd614dcd877e';
 const TK = 'notion_token_v2';
 const LOG_LK = 'bean_log_v4'; // local log cache
 
@@ -326,7 +326,8 @@ async function nAPI(method, path, body) {
       headers: {
         'Authorization': 'Bearer ' + token,
         'Notion-Version': '2022-06-28',
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-Notion-Token': token
       },
       body: body ? JSON.stringify(body) : undefined
     });
