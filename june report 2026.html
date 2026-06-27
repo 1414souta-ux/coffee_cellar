@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>COFFEE LOG — JUNE 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --espresso:#1a0f08;--dark:#0e0804;--crema:#c8922a;--milk:#f0e6d3;
+  --foam:#faf6f0;--text-dim:#8a7060;--text-muted:#5a4030;
+  --green:#4a7c59;--red:#b5452a;--border:rgba(200,146,42,0.15);
+  --nav-h:68px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-snap-type:y mandatory;overflow-y:scroll;height:100%}
+body{font-family:'Playfair Display',serif;background:var(--espresso);color:var(--milk);height:100%}
+
+/* SLIDES */
+.slide{scroll-snap-align:start;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 32px;position:relative;overflow:hidden}
+
+/* NAV DOTS */
+.nav-dots{position:fixed;right:20px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px;z-index:100}
+.dot{width:7px;height:7px;border-radius:50%;background:rgba(200,146,42,0.3);border:none;cursor:pointer;transition:all .3s}
+.dot.active{background:var(--crema);transform:scale(1.4)}
+
+/* LOADING */
+#loading{position:fixed;inset:0;background:var(--espresso);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200}
+.loading-title{font-family:'Bebas Neue',sans-serif;font-size:48px;color:var(--crema);letter-spacing:3px;margin-bottom:16px}
+.loading-sub{font-family:'Space Mono',monospace;font-size:11px;color:var(--text-dim);letter-spacing:2px}
+.loading-bar{width:200px;height:2px;background:rgba(200,146,42,0.2);border-radius:1px;margin-top:24px;overflow:hidden}
+.loading-fill{height:100%;background:var(--crema);border-radius:1px;animation:load 2s ease-in-out forwards}
+@keyframes load{0%{width:0}100%{width:100%}}
+
+/* SETUP */
+#setup{position:fixed;inset:0;background:var(--espresso);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:200;padding:40px}
+.setup-title{font-family:'Bebas Neue',sans-serif;font-size:40px;color:var(--crema);letter-spacing:2px;margin-bottom:8px;text-align:center}
+.setup-sub{font-family:'Space Mono',monospace;font-size:11px;color:var(--text-dim);letter-spacing:1px;text-align:center;margin-bottom:32px;line-height:2}
+.setup-input{width:100%;max-width:400px;background:rgba(255,255,255,0.05);border:0.5px solid var(--border);border-radius:10px;padding:14px 16px;font-family:'Space Mono',monospace;font-size:13px;color:var(--milk);margin-bottom:16px}
+.setup-input:focus{outline:none;border-color:var(--crema)}
+.setup-btn{padding:14px 40px;background:var(--crema);border:none;border-radius:10px;font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--espresso);cursor:pointer;letter-spacing:2px}
+.setup-err{font-family:'Space Mono',monospace;font-size:11px;color:var(--red);margin-top:12px;display:none}
+
+/* TYPOGRAPHY */
+.eyebrow{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:4px;color:var(--crema);text-transform:uppercase;margin-bottom:12px;opacity:0;animation:fadeUp .8s .2s forwards}
+.big-num{font-family:'Bebas Neue',sans-serif;font-size:clamp(100px,20vw,180px);line-height:1;color:var(--crema);letter-spacing:-4px;opacity:0;animation:fadeUp .8s .4s forwards}
+.slide-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(48px,8vw,80px);line-height:1;color:var(--foam);letter-spacing:1px;opacity:0;animation:fadeUp .8s .3s forwards}
+.slide-sub{font-family:'Playfair Display',serif;font-style:italic;font-size:clamp(15px,2vw,20px);color:var(--text-dim);margin-top:16px;line-height:1.7;max-width:500px;text-align:center;opacity:0;animation:fadeUp .8s .5s forwards}
+.mono{font-family:'Space Mono',monospace;font-size:11px;color:var(--text-dim);letter-spacing:2px}
+
+/* BARS */
+.bar-list{width:100%;max-width:600px;display:flex;flex-direction:column;gap:14px;margin-top:32px}
+.bar-row{display:flex;align-items:center;gap:12px}
+.bar-rank{font-family:'Bebas Neue',sans-serif;font-size:28px;color:rgba(200,146,42,0.3);min-width:36px}
+.bar-label{font-family:'Playfair Display',serif;font-size:15px;color:var(--milk);min-width:160px;line-height:1.3}
+.bar-track{flex:1;height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--text-muted),var(--crema));animation:growRight 1s ease-out forwards;transform-origin:left}
+.bar-count{font-family:'Space Mono',monospace;font-size:12px;color:var(--crema);min-width:28px;text-align:right}
+
+/* PLACE CARDS */
+.place-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:700px;width:100%;margin-top:32px}
+.place-card{background:rgba(255,255,255,0.04);border:0.5px solid var(--border);border-radius:12px;padding:28px 16px;text-align:center}
+.place-icon{font-size:32px;margin-bottom:12px;display:block}
+.place-num{font-family:'Bebas Neue',sans-serif;font-size:56px;color:var(--crema);line-height:1}
+.place-name{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin-top:6px}
+
+/* QUOTES */
+.quote-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;max-width:800px;width:100%;margin-top:28px}
+.quote-card{background:rgba(255,255,255,0.03);border:0.5px solid var(--border);border-radius:10px;padding:20px}
+.quote-award{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--crema);margin-bottom:10px;opacity:.7}
+.quote-name{font-family:'Playfair Display',serif;font-size:13px;font-weight:700;color:var(--foam);margin-bottom:8px;line-height:1.4}
+.quote-text{font-family:'Playfair Display',serif;font-style:italic;font-size:12px;color:var(--text-dim);line-height:1.6}
+.quote-text::before{content:'"';color:var(--crema)}
+.quote-text::after{content:'"';color:var(--crema)}
+
+/* CLOSING */
+.closing-big{font-family:'Bebas Neue',sans-serif;font-size:clamp(60px,12vw,120px);line-height:1;color:var(--crema);text-align:center}
+.closing-sub{font-family:'Playfair Display',serif;font-style:italic;font-size:clamp(16px,2vw,22px);color:var(--milk);max-width:500px;line-height:1.8;text-align:center;margin-top:24px}
+.ring{position:absolute;border-radius:50%;border:1px solid rgba(200,146,42,0.07);pointer-events:none}
+
+/* BACKGROUNDS */
+#s1{background:radial-gradient(ellipse at 30% 50%,#3d1f0f 0%,var(--espresso) 70%)}
+#s2{background:var(--dark)}
+#s3{background:radial-gradient(ellipse at 70% 30%,#1e1a08 0%,var(--espresso) 65%)}
+#s4{background:var(--dark)}
+#s5{background:radial-gradient(ellipse at 40% 70%,#081e12 0%,var(--espresso) 65%)}
+#s6{background:var(--espresso)}
+#s7{background:radial-gradient(ellipse at 50% 50%,#2d1a05 0%,var(--espresso) 70%)}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes growRight{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes rotateSlow{from{transform:translate(-50%,-50%) rotate(0deg)}to{transform:translate(-50%,-50%) rotate(360deg)}}
+.reveal{opacity:0;transform:translateY(16px);transition:all .7s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading">
+  <div class="loading-title">JUNE 2026</div>
+  <div class="loading-sub">Notionからデータを取得中</div>
+  <div class="loading-bar"><div class="loading-fill"></div></div>
+</div>
+
+<!-- SETUP -->
+<div id="setup">
+  <div class="setup-title">Bean Cellar</div>
+  <div class="setup-sub">Notionトークンを入力してください<br>（notion_token_v2 がlocalStorageにあれば自動読み込みします）</div>
+  <input class="setup-input" id="token-input" type="text" placeholder="ntn_xxxxx">
+  <button class="setup-btn" onclick="startWithToken()">GENERATE</button>
+  <div class="setup-err" id="setup-err">接続に失敗しました。トークンを確認してください。</div>
+</div>
+
+<!-- NAV -->
+<nav class="nav-dots" id="nav-dots"></nav>
+
+<!-- SLIDES (populated by JS) -->
+<div id="slides-container"></div>
+
+<script>
+const PROXY = 'https://notion-proxy.1414souta.workers.dev';
+const LOG_DB = '38b285ba-a83a-801a-96f7-cd614dcd877e';
+const TK_KEY = 'notion_token_v2';
+
+async function nAPI(token, method, path, body) {
+  const r = await fetch(PROXY + path, {
+    method,
+    headers: {
+      'Authorization': 'Bearer ' + token,
+      'Notion-Version': '2022-06-28',
+      'Content-Type': 'application/json'
+    },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  if (!r.ok) return null;
+  return r.json();
+}
+
+async function fetchAllJuneLogs(token) {
+  let results = [], cursor = null;
+  do {
+    const body = {
+      sorts: [{ timestamp: 'created_time', direction: 'ascending' }],
+      page_size: 100
+    };
+    if (cursor) body.start_cursor = cursor;
+    const res = await nAPI(token, 'POST', '/v1/databases/' + LOG_DB + '/query', body);
+    if (!res) return null;
+    // Filter June 2026 client-side (created_time)
+    const june = res.results.filter(p => {
+      const t = p.created_time || '';
+      return t.startsWith('2026-06');
+    });
+    results = results.concat(june);
+    cursor = res.has_more ? res.next_cursor : null;
+    // Stop if we've passed June
+    const last = res.results[res.results.length - 1];
+    if (last && last.created_time > '2026-07-01') cursor = null;
+  } while (cursor);
+  return results;
+}
+
+function parseRecord(p) {
+  return {
+    name: p.properties['コーヒーの名前']?.title?.[0]?.plain_text || '',
+    memo: p.properties['ひとことメモ']?.rich_text?.[0]?.plain_text || '',
+    place: p.properties['飲んだ場所']?.select?.name || '',
+    roaster: p.properties['ロースター']?.select?.name || '',
+    grams: p.properties['使用グラム']?.number || null,
+    roastLevel: p.properties['焙煎度']?.select?.name || '',
+    process: p.properties['精製方法']?.select?.name || '',
+    ts: p.created_time
+  };
+}
+
+function buildReport(records) {
+  const total = records.length;
+
+  // Place counts
+  const places = {家:0, カフェ:0, 外:0};
+  records.forEach(r => {
+    if (r.place === '家') places['家']++;
+    else if (r.place === 'カフェ') places['カフェ']++;
+    else places['外']++;
+  });
+
+  // Roaster counts
+  const roasterMap = {};
+  records.forEach(r => {
+    const key = r.roaster || 'その他';
+    roasterMap[key] = (roasterMap[key] || 0) + 1;
+  });
+  const roasters = Object.entries(roasterMap).sort((a,b) => b[1]-a[1]).slice(0,6);
+
+  // Bean counts
+  const beanMap = {};
+  records.forEach(r => {
+    if (r.name) beanMap[r.name] = (beanMap[r.name] || 0) + 1;
+  });
+  const topBeans = Object.entries(beanMap).sort((a,b) => b[1]-a[1]).slice(0,5);
+
+  // Notable memos
+  const notable = records.filter(r => r.memo && r.memo.length > 10)
+    .sort((a,b) => b.memo.length - a.memo.length).slice(0, 4);
+
+  // Ice count
+  const ice = records.filter(r => r.name.includes('アイス')).length;
+
+  // Total grams
+  const totalG = records.reduce((s,r) => s + (r.grams||0), 0);
+
+  renderSlides({total, places, roasters, topBeans, notable, ice, totalG});
+}
+
+function renderSlides({total, places, roasters, topBeans, notable, ice, totalG}) {
+  const container = document.getElementById('slides-container');
+  const maxRoaster = roasters[0]?.[1] || 1;
+  const maxBean = topBeans[0]?.[1] || 1;
+
+  container.innerHTML = `
+  <!-- S1: COVER -->
+  <section class="slide" id="s1">
+    <div class="ring" style="width:500px;height:500px;top:50%;left:50%;animation:rotateSlow 40s linear infinite"></div>
+    <div class="ring" style="width:700px;height:700px;top:50%;left:50%;animation:rotateSlow 60s linear infinite reverse"></div>
+    <p class="eyebrow">Coffee Log · 2026</p>
+    <h1 class="slide-title" style="font-size:clamp(60px,14vw,140px)">JUNE</h1>
+    <div class="big-num" style="font-size:clamp(80px,16vw,160px)">${total}</div>
+    <p class="slide-sub">Cups of coffee · June 2026</p>
+  </section>
+
+  <!-- S2: ROASTERS -->
+  <section class="slide" id="s2">
+    <p class="eyebrow reveal">Who Poured the Most</p>
+    <h2 class="slide-title reveal">Roasters</h2>
+    <div class="bar-list">
+      ${roasters.map(([name, count], i) => `
+        <div class="bar-row reveal" style="transition-delay:${i*0.08}s">
+          <span class="bar-rank">${i+1}</span>
+          <span class="bar-label">${name}</span>
+          <div class="bar-track"><div class="bar-fill" style="width:${Math.round(count/maxRoaster*100)}%"></div></div>
+          <span class="bar-count">${count}</span>
+        </div>`).join('')}
+    </div>
+  </section>
+
+  <!-- S3: TOP BEANS -->
+  <section class="slide" id="s3">
+    <p class="eyebrow reveal">Most Reached For</p>
+    <h2 class="slide-title reveal">Top Beans</h2>
+    <div class="bar-list">
+      ${topBeans.map(([name, count], i) => `
+        <div class="bar-row reveal" style="transition-delay:${i*0.1}s">
+          <span class="bar-rank">${i+1}</span>
+          <span class="bar-label" style="font-size:13px">${name}</span>
+          <div class="bar-track"><div class="bar-fill" style="width:${Math.round(count/maxBean*100)}%"></div></div>
+          <span class="bar-count">${count}</span>
+        </div>`).join('')}
+    </div>
+  </section>
+
+  <!-- S4: PLACE -->
+  <section class="slide" id="s4">
+    <p class="eyebrow reveal">Where You Brewed</p>
+    <h2 class="slide-title reveal">Place</h2>
+    <div class="place-grid reveal">
+      <div class="place-card">
+        <span class="place-icon">🏠</span>
+        <div class="place-num">${places['家']}</div>
+        <div class="place-name">Home</div>
+      </div>
+      <div class="place-card">
+        <span class="place-icon">☕</span>
+        <div class="place-num">${places['カフェ']}</div>
+        <div class="place-name">Café</div>
+      </div>
+      <div class="place-card">
+        <span class="place-icon">💼</span>
+        <div class="place-num">${places['外']}</div>
+        <div class="place-name">Out</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- S5: ICE vs HOT -->
+  <section class="slide" id="s5">
+    <p class="eyebrow reveal">Summer is Here</p>
+    <h2 class="slide-title reveal">Hot vs Ice</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;max-width:600px;width:100%;margin-top:32px;background:rgba(200,146,42,0.2);border-radius:16px;overflow:hidden" class="reveal">
+      <div style="background:rgba(60,20,5,0.8);padding:40px;text-align:center">
+        <span style="font-size:40px;display:block;margin-bottom:12px">☕</span>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:72px;color:#e0804a;line-height:1">${total - ice}</div>
+        <div style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text-dim);margin-top:6px">HOT</div>
+      </div>
+      <div style="background:rgba(5,20,40,0.8);padding:40px;text-align:center">
+        <span style="font-size:40px;display:block;margin-bottom:12px">🧊</span>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:72px;color:#5ab8d8;line-height:1">${ice}</div>
+        <div style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text-dim);margin-top:6px">ICE</div>
+      </div>
+    </div>
+    ${totalG > 0 ? `<p class="slide-sub reveal" style="margin-top:24px">合計使用グラム <strong style="color:var(--crema)">${totalG}g</strong></p>` : ''}
+  </section>
+
+  <!-- S6: QUOTES -->
+  <section class="slide" id="s6">
+    <p class="eyebrow reveal">Words That Landed</p>
+    <h2 class="slide-title reveal">Hall of Quotes</h2>
+    <div class="quote-grid reveal">
+      ${notable.map((r, i) => `
+        <div class="quote-card">
+          <div class="quote-award">✦ Notable #${i+1}</div>
+          <div class="quote-name">${r.name.length > 30 ? r.name.slice(0,30)+'…' : r.name}</div>
+          <div class="quote-text">${r.memo.length > 80 ? r.memo.slice(0,80)+'…' : r.memo}</div>
+        </div>`).join('')}
+    </div>
+  </section>
+
+  <!-- S7: CLOSING -->
+  <section class="slide" id="s7">
+    <div class="ring" style="width:500px;height:500px;top:50%;left:50%;animation:rotateSlow 50s linear infinite"></div>
+    <h2 class="closing-big reveal">See You<br>in July</h2>
+    <p class="closing-sub reveal">
+      ${total}杯の6月、お疲れ様でした。<br>
+      アイスが${ice}杯、夏が来てますね。
+    </p>
+    <p class="mono reveal" style="margin-top:40px;opacity:.4">COFFEE LOG 2026 · JUNE · GENERATED BY BEAN CELLAR</p>
+  </section>
+  `;
+
+  // Nav dots
+  const navEl = document.getElementById('nav-dots');
+  const slides = container.querySelectorAll('.slide');
+  navEl.innerHTML = Array.from(slides).map((_,i) => `<button class="dot${i===0?' active':''}" onclick="scrollToSlide(${i})"></button>`).join('');
+
+  // Intersection observer
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting && e.intersectionRatio > 0.5) {
+        const idx = Array.from(slides).indexOf(e.target);
+        document.querySelectorAll('.dot').forEach((d,i) => d.classList.toggle('active', i===idx));
+      }
+    });
+  }, {threshold: 0.5});
+  slides.forEach(s => observer.observe(s));
+
+  const revealObs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+  }, {threshold: 0.1});
+  document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+}
+
+function scrollToSlide(i) {
+  document.querySelectorAll('.slide')[i]?.scrollIntoView({behavior:'smooth'});
+}
+
+async function startWithToken() {
+  const token = document.getElementById('token-input').value.trim();
+  if (!token) return;
+  localStorage.setItem(TK_KEY, token);
+  document.getElementById('setup-err').style.display = 'none';
+  document.getElementById('setup').style.display = 'none';
+  document.getElementById('loading').style.display = 'flex';
+  await run(token);
+}
+
+async function run(token) {
+  const records_raw = await fetchAllJuneLogs(token);
+  document.getElementById('loading').style.display = 'none';
+  if (!records_raw) {
+    document.getElementById('setup').style.display = 'flex';
+    document.getElementById('setup-err').style.display = 'block';
+    return;
+  }
+  const records = records_raw.map(parseRecord);
+  buildReport(records);
+}
+
+// Init
+window.addEventListener('load', async () => {
+  const saved = localStorage.getItem(TK_KEY);
+  if (saved) {
+    await run(saved);
+  } else {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('setup').style.display = 'flex';
+    document.getElementById('token-input').value = '';
+  }
+});
+</script>
+</body>
+</html>
