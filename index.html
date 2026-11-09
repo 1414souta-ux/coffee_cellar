@@ -203,6 +203,7 @@ html,body{height:100%;background:var(--bg);color:var(--text-primary);font-family
 .gd-opts label{display:flex;gap:6px;align-items:center;cursor:pointer}
 .gd-opts input{accent-color:var(--gd-a)}
 .gd-haptic{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+#gd-wrap[hidden]{display:none!important}
 </style>
 </head>
 <body>
@@ -232,11 +233,19 @@ html,body{height:100%;background:var(--bg);color:var(--text-primary);font-family
     </div>
     <div class="form-wrap" style="padding-bottom:8px">
       <div class="fg">
+        <label class="fl">Place</label>
+        <div class="place-row">
+          <button class="pchip on" data-place="家" onclick="selPlace(this)">家</button>
+          <button class="pchip" data-place="カフェ" onclick="selPlace(this)">カフェ</button>
+          <button class="pchip" data-place="外（職場・移動中など）" onclick="selPlace(this)">外</button>
+        </div>
+      </div>
+      <div class="fg">
         <label class="fl">Bean</label>
         <div class="picker-row" id="bean-picker"></div>
         <input class="fi" id="log-free" type="text" placeholder="または名前を入力" style="margin-top:8px;display:none">
       </div>
-      <div class="fg">
+      <div class="fg" id="gd-wrap">
         <label class="fl">Grams used</label>
         <div class="gd" id="gd" data-mode="hot">
           <div class="gd-seg" role="radiogroup" aria-label="ホット/アイス">
@@ -279,14 +288,6 @@ html,body{height:100%;background:var(--bg);color:var(--text-primary);font-family
             <label><input type="checkbox" data-r="vib" checked> 振動</label>
           </div>
           <label class="gd-haptic" aria-hidden="true"><input type="checkbox" switch data-r="hs" tabindex="-1"></label>
-        </div>
-      </div>
-      <div class="fg">
-        <label class="fl">Place</label>
-        <div class="place-row">
-          <button class="pchip on" data-place="家" onclick="selPlace(this)">家</button>
-          <button class="pchip" data-place="カフェ" onclick="selPlace(this)">カフェ</button>
-          <button class="pchip" data-place="外（職場・移動中など）" onclick="selPlace(this)">外</button>
         </div>
       </div>
       <div class="fg">
@@ -664,6 +665,12 @@ function selPlace(el) {
   selectedPlace = el.dataset.place;
   document.querySelectorAll('.pchip').forEach(c => c.classList.remove('on'));
   el.classList.add('on');
+  updateGdVisibility();
+}
+// ダイヤルは「家」のときだけ表示
+function updateGdVisibility() {
+  const w = document.getElementById('gd-wrap');
+  if (w) w.hidden = selectedPlace !== '家';
 }
 
 async function renderLogHist() {
@@ -706,7 +713,7 @@ document.getElementById('btn-record').addEventListener('click', async () => {
   const bean = selectedBeanId ? stockData.find(b => b.id === selectedBeanId) : null;
   const name = bean ? bean.name : document.getElementById('log-free').value.trim();
   if (!name) { showToast('Bean name is required'); return; }
-  const grams = (window.GramDial && GramDial.value) || null;   // ダイヤルの値（0.5g刻み）
+  const grams = (selectedPlace === '家' && window.GramDial && GramDial.value) || null;   // ダイヤルの値（0.5g刻み）
   const memo  = document.getElementById('log-memo').value.trim();
   const entry = { id: 'l'+Date.now(), name, memo, grams, place: selectedPlace, ts: new Date().toISOString(),
     roaster: bean?.roaster||'', roastLevel: bean?.roastLevel||'', process: bean?.process||'' };
@@ -1018,6 +1025,7 @@ function showToast(msg) {
   window.GramDial = { get value() { return value; }, get mode() { return mode; }, get ratio() { return ratio[mode]; } };
 })();
 
+updateGdVisibility();
 // ── INIT ──
 document.getElementById('n-date').value = new Date().toISOString().split('T')[0];
 updateNStatus();
