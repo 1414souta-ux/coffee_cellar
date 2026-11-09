@@ -778,7 +778,27 @@ function autoSteps(r){const W=water(r),b=Math.round(r.dose*3),T=r.temp,v=r.tempV
 const RK='bc_recipes_v1';
 function loadR(){try{const a=JSON.parse(localStorage.getItem(RK)||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}}
 function saveR(){try{localStorage.setItem(RK,JSON.stringify(recipes))}catch(e){}}
+// 初期レシピ（初回だけ追加。あとで削除してもそのまま消えたままになる）
+const SEED_FLAG='bc_recipes_seed_v1';
+const SEEDS=[
+ {id:1001,name:'phillocoffea 長崎さんレシピ',mode:'hot',dripper:'V60',dose:17.5,ratio:12,temp:90,end:150,grind:12,tempVar:true,fav:true,
+  memo:'JBrC2026優勝、浅煎り向き。蒸らしのあとは20秒ごとに30グラムずつ注ぐ。後半3投は75℃',
+  steps:[{t:0,g:30,n:'蒸らし',c:90},{t:20,g:60,n:'1投目',c:90},{t:40,g:90,n:'2投目',c:90},{t:60,g:120,n:'3投目',c:90},{t:80,g:150,n:'4投目',c:75},{t:100,g:180,n:'5投目',c:75},{t:120,g:210,n:'6投目',c:75}]},
+ {id:1002,name:'koloro coffee レシピ',mode:'hot',dripper:'V60 NEO',dose:15.5,ratio:14.84,temp:90,end:90,grind:13,tempVar:false,fav:false,
+  memo:'真ん中から円を広げるように、常に一定のペースで注ぐ。1分半で落ち切る粗さに調整する',
+  steps:[{t:0,g:70,n:'蒸らし',c:90},{t:20,g:160,n:'2投目',c:90},{t:40,g:230,n:'3投目',c:90}]},
+ {id:1003,name:'田中陸斗(silk)',mode:'hot',dripper:'Beandy Silk',dose:13,ratio:15.38,temp:90,end:155,grind:11.3,tempVar:false,fav:false,
+  memo:'Bella Arejandria Maragesha Washed',
+  steps:[{t:0,g:30,n:'蒸らし',c:90},{t:40,g:80,n:'1投目',c:90},{t:80,g:130,n:'2投目',c:90},{t:105,g:200,n:'3投目',c:90}]},
+];
 let recipes=loadR();
+try{
+  if(!localStorage.getItem(SEED_FLAG)){
+    SEEDS.forEach(r=>{if(!recipes.some(x=>x.id===r.id))recipes.push(r)});
+    localStorage.setItem(SEED_FLAG,'1');
+    saveR();
+  }
+}catch(e){}
 let filter='all',openId=null,nextId=recipes.reduce((m,r)=>Math.max(m,r.id||0),0)+1,draft=null;
 function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.k);toast.k=setTimeout(()=>e.classList.remove('on'),1900)}
 const STAR='<svg viewBox="0 0 24 24"><path d="M12 3.2l2.6 5.5 6 .8-4.4 4.2 1.1 6-5.3-2.9-5.3 2.9 1.1-6L3.4 9.5l6-.8z"/></svg>';
@@ -821,7 +841,7 @@ function card(r){
   return`<article class="card ${o?'open':''}" data-mode="${r.mode}">
    <div class="top" data-toggle="${r.id}" role="button" tabindex="0" aria-expanded="${o}">
      <div class="dose">${r.dose}<small>g</small></div>
-     <div class="nm"><b>${esc(r.name)}</b><div class="meta"><span>${r.dripper}</span><span>1:${r.ratio}</span><span>${tl(r)}℃</span></div></div>
+     <div class="nm"><b>${esc(r.name)}</b><div class="meta"><span>${r.dripper}</span><span>1:${Math.round(r.ratio*10)/10}</span><span>${tl(r)}℃</span></div></div>
      <button class="star ${r.fav?'on':''}" data-star="${r.id}" aria-label="${r.fav?'お気に入りを外す':'お気に入りに追加'}" aria-pressed="${r.fav}">${STAR}</button>
    </div>
    <div class="spark">${spark(r)}</div>
@@ -864,7 +884,7 @@ function drawSheet(keepScroll){
    <label class="fl">ドリッパー</label>
    <div class="chips">${DRIPPERS.map(x=>`<button data-dr="${x}" class="${d.dripper===x?'on':''}">${x}</button>`).join('')}</div>
    <label class="fl">分量と温度</label>
-   <div class="trio" style="${d.tempVar?'grid-template-columns:1fr 1fr':''}">${stp('dose','粉',d.dose.toFixed(1),'g')}${stp('ratio','比率','1:'+d.ratio,'')}${d.tempVar?'':stp('temp','湯温',d.temp,'℃')}</div>
+   <div class="trio" style="${d.tempVar?'grid-template-columns:1fr 1fr':''}">${stp('dose','粉',d.dose.toFixed(1),'g')}${stp('ratio','比率','1:'+Math.round(d.ratio*10)/10,'')}${d.tempVar?'':stp('temp','湯温',d.temp,'℃')}</div>
    <div class="fav" style="margin-top:10px"><span>途中で湯温を変える</span><button class="sw ${d.tempVar?'on':''}" id="f-tv" role="switch" aria-checked="${d.tempVar}" aria-label="途中で湯温を変える"></button></div>
    <div class="prev"><div class="sum"><span>湯量</span><b>${water(d)}g</b><span>${mmss(d.end)}</span></div>${chart(d,84)}</div>
    <label class="fl">注ぎ方</label>
