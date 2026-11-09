@@ -2,252 +2,290 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#faf8f5">
 <title>Bean Cellar</title>
   <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
-
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
+
+
 :root{
-  --bg:#faf8f5;--bg-card:#fff;--bg-sub:#f2ede6;
-  --espresso:#1a0f08;--crema:#b07820;--crema-light:#f5ecd8;
-  --text-primary:#1a0f08;--text-secondary:#6b5040;--text-muted:#b0988a;
-  --border:rgba(26,15,8,0.08);--border-mid:rgba(26,15,8,0.14);
-  --green:#3a6644;--green-bg:#eaf2ec;
-  --amber:#9a6010;--amber-bg:#fdf0d8;
-  --red:#9a3020;--red-bg:#fcecea;
-  --nav-h:68px;
-  --proxy:https://notion-proxy.1414souta.workers.dev;
-  --stock-db:fd4194d3-b379-4ea8-88b8-e4a8fd2bdc03;
-  --log-db:dd4407e7-158d-4c58-b895-bd8d01f90700;
+  --bg:#faf8f5;--s1:#ffffff;--s2:#f0eae2;--line:rgba(26,15,8,.10);
+  --tx:#1a0f08;--tx2:rgba(26,15,8,.64);--tx3:rgba(26,15,8,.40);
+  --hot:#b07820;--hot-hi:#e0a848;--ice:#3f7f9d;--ice-hi:#9fd0e6;--ink:#ffffff;--cardbd:rgba(26,15,8,.09);
+  --ok:#3a6644;--warn:#9a6010;--bad:#9a3020;
+  --tick:rgba(26,15,8,.2);--tickM:rgba(26,15,8,.45);
+  --k1:#4a3220;--k2:#2a1a0f;--k3:#1a0f08;--kst:rgba(255,255,255,.06);
+  --num:ui-rounded,"SF Pro Rounded","Hiragino Maru Gothic ProN",system-ui,sans-serif;
+  --jp:-apple-system,"Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+  color-scheme:light;
 }
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;background:var(--bg);color:var(--text-primary);font-family:'Playfair Display',serif;overscroll-behavior:none}
-.app{display:flex;flex-direction:column;height:100vh;max-width:430px;margin:0 auto}
-.screen{flex:1;overflow-y:auto;padding-bottom:calc(var(--nav-h)+12px);display:none}
-.screen.active{display:block}
+html{background:var(--bg);--a:var(--hot)}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:var(--jp);-webkit-font-smoothing:antialiased;padding-bottom:110px;transition:background .25s,color .25s}
+.bar{top:0}
+.screen{display:none}.screen.on{display:block}
+.fab{display:none;position:fixed;right:max(18px,calc(50% - 222px));bottom:calc(88px + env(safe-area-inset-bottom));z-index:15;border:0;border-radius:99px;background:var(--hot);color:var(--ink);padding:0 24px;height:56px;font-size:15px;font-weight:800;box-shadow:0 10px 30px rgba(0,0,0,.35);cursor:pointer;align-items:center;gap:8px}
+body[data-tab=recipes] .fab{display:flex}
+.fab svg{width:18px;height:18px;stroke:currentColor;stroke-width:2.6;stroke-linecap:round}
+.card,.fi,.stp,.fav,.gr,.prev,.sc,.gd,.lg,.mini,.bar button,.chips button,.seg button,.gd-chip,.dn{border:1px solid var(--cardbd)}
+.head p{min-height:1em}
 
-/* HEADER */
-.header{padding:52px 20px 14px;position:sticky;top:0;background:var(--bg);z-index:10;border-bottom:0.5px solid var(--border-mid)}
-.eyebrow{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:4px;color:var(--crema);text-transform:uppercase;margin-bottom:2px}
-.h-title{font-family:'Bebas Neue',sans-serif;font-size:40px;line-height:1;color:var(--espresso);letter-spacing:2px}
-.h-title em{color:var(--crema);font-style:normal}
-.h-sub{font-family:'Space Mono',monospace;font-size:10px;color:var(--text-muted);margin-top:3px;letter-spacing:.5px}
+/* nav */
+.nav{position:fixed;z-index:20;left:50%;bottom:0;transform:translateX(-50%);width:100%;max-width:480px;display:flex;padding:8px 8px calc(8px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid var(--line)}
+.nav button{flex:1;border:0;background:none;color:var(--tx3);display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0 4px;font-size:11px;font-weight:700;cursor:pointer;position:relative}
+.nav svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.nav button.on{color:var(--hot)}
+.nav button.on::before{content:"";position:absolute;top:-9px;width:22px;height:3px;border-radius:2px;background:var(--hot)}
 
-/* NAV */
-.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:#fff;border-top:0.5px solid var(--border-mid);display:flex;z-index:20;height:var(--nav-h)}
-.nav-btn{flex:1;padding:10px 0 16px;background:none;border:none;color:var(--text-muted);font-family:'Space Mono',monospace;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;transition:color .15s}
-.nav-btn.active{color:var(--crema)}
-.nav-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+#place button.on{background:var(--tx);color:var(--ink)}
+.use{background:var(--a,var(--hot))}
+/* shared */
+.pill{flex:none;font-size:11px;font-weight:700;padding:5px 10px;border-radius:99px;background:var(--s2)}
+.pill.ok{color:var(--ok)}.pill.low{color:var(--warn)}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.tags span{font-size:11px;font-weight:600;color:var(--tx2);background:var(--s2);padding:4px 9px;border-radius:8px}
+.list2{padding:0 16px;display:flex;flex-direction:column;gap:12px}
+.sc{background:var(--s1);border-radius:24px;padding:18px;cursor:pointer;transition:transform .12s}
+.sc:active{transform:scale(.985)}
+.sc-top{display:grid;grid-template-columns:auto 1fr auto;gap:0 14px;align-items:center}
+.sc-g{font:800 44px/1 var(--num);letter-spacing:-.03em;min-width:62px}
+.sc-g small{font-size:15px;margin-left:2px;color:var(--tx3)}
+.sc-g.low{color:var(--warn)}
+.prog{height:6px;border-radius:3px;background:var(--s2);margin-top:14px;overflow:hidden}
+.prog i{display:block;height:100%;border-radius:3px;background:var(--hot)}
+.prog i.low{background:var(--warn)}
+.of{display:flex;justify-content:space-between;margin-top:7px;font:600 11px var(--num);color:var(--tx3)}
+.memo2{margin-top:12px;font-size:13px;line-height:1.7;color:var(--tx2)}
+.nb{display:flex;align-items:center;gap:8px;margin:2px 22px 0;font-size:12px;color:var(--tx2)}
+.nb i{width:7px;height:7px;border-radius:50%;background:var(--ok)}
+.nb button{margin-left:auto;border:0;background:none;color:var(--hot);font-size:12px;font-weight:700;cursor:pointer}
+.form{padding:6px 20px 0}
+.form .fl:first-child{margin-top:14px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fi[type=date]{min-height:50px}
+.rec{background:var(--s1);border-radius:18px;padding:14px 16px;margin-bottom:10px}
+.rec .t{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.rec b{font-size:15px;font-weight:700}
+.rec .g{font:800 20px var(--num);color:var(--hot)}
+.rec .m{font-size:12px;color:var(--tx3);margin-top:4px}
+.rec .n{font-size:13px;color:var(--tx2);margin-top:6px;line-height:1.6}
+.dn{background:var(--s1);border-radius:20px;padding:16px;margin-bottom:10px;opacity:.85}
+.dn b{font-size:15px}.dn .m{font-size:12px;color:var(--tx3);margin:4px 0 12px}
+.dn .a{display:flex;gap:8px}
+.dn .a button{flex:1;border:0;border-radius:12px;padding:11px;background:var(--s2);color:var(--tx);font-size:13px;font-weight:700;cursor:pointer}
+.dn .a button.d{flex:none;color:var(--bad)}
+.sheet.auto{height:auto;max-height:92vh}
+.bigin{display:flex;align-items:center;gap:8px;background:var(--s1);border-radius:18px;padding:6px}
+.bigin button{flex:none;width:52px;height:52px;border:0;border-radius:14px;background:var(--s2);color:var(--hot);font-size:22px;font-weight:700;cursor:pointer}
+.bigin input{flex:1;min-width:0;border:0;background:none;color:var(--tx);text-align:center;font:800 40px var(--num);letter-spacing:-.02em;outline:0}
+.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+.quick button{border:0;border-radius:12px;padding:11px 0;background:var(--s2);color:var(--tx2);font:700 13px var(--num);cursor:pointer}
+.quick button:active{background:var(--hot);color:var(--ink)}
+.sh2{padding:4px 20px 8px}
+.sh2 .two{display:grid;grid-template-columns:1fr 2fr;gap:10px;margin-top:20px}
+.sh2 .two .use{width:auto}
 
-/* CARDS */
-.list{padding:16px;display:flex;flex-direction:column;gap:10px}
-.card{background:var(--bg-card);border:0.5px solid var(--border-mid);border-radius:16px;padding:18px;cursor:pointer;transition:transform .1s}
-.card:active{transform:scale(0.985)}
-.card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
-.bean-name{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--text-primary);line-height:1.3;flex:1;margin-right:10px}
-.status-badge{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:1px;padding:3px 8px;border-radius:99px;flex-shrink:0;font-weight:700;text-transform:uppercase}
-.s-ok{background:var(--green-bg);color:var(--green)}
-.s-low{background:var(--amber-bg);color:var(--amber)}
-.s-done{background:var(--bg-sub);color:var(--text-muted)}
-.meta{font-family:'Space Mono',monospace;font-size:10px;color:var(--text-muted);margin-bottom:12px;letter-spacing:.5px}
-.badges{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px}
-.badge{font-family:'Space Mono',monospace;font-size:9px;padding:2px 7px;border-radius:4px;background:var(--bg-sub);color:var(--text-secondary)}
-.grams-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
-.grams-num{font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--espresso);line-height:1;letter-spacing:1px}
-.grams-num sub{font-size:16px;color:var(--text-muted)}
-.grams-of{font-family:'Space Mono',monospace;font-size:10px;color:var(--text-muted)}
-.prog-track{height:4px;background:var(--bg-sub);border-radius:2px;overflow:hidden}
-.prog-fill{height:100%;border-radius:2px;transition:width .4s}
-.fill-hi{background:var(--green)}.fill-md{background:var(--crema)}.fill-lo{background:var(--red)}
-.card-memo{font-family:'Playfair Display',serif;font-style:italic;font-size:12px;color:var(--text-muted);margin-top:10px;padding-top:10px;border-top:0.5px solid var(--border);line-height:1.6}
-
-/* EMPTY / LOADING */
-.empty{text-align:center;padding:64px 24px}
-.empty-icon{font-size:36px;margin-bottom:12px;opacity:.25}
-.empty-txt{font-family:'Space Mono',monospace;font-size:11px;color:var(--text-muted);letter-spacing:1px;line-height:2.2}
-.skeleton{background:linear-gradient(90deg,var(--bg-sub) 25%,var(--bg-card) 50%,var(--bg-sub) 75%);background-size:200% 100%;animation:shimmer 1.2s infinite;border-radius:8px;height:20px;margin-bottom:8px}
-@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-.skeleton-card{background:var(--bg-card);border:0.5px solid var(--border-mid);border-radius:16px;padding:18px;margin-bottom:10px}
-
-/* STOCK MODAL */
-.overlay{position:fixed;inset:0;background:rgba(26,15,8,.35);z-index:50;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(2px)}
-.overlay.open{display:flex}
-.sheet{background:#fff;border-radius:24px 24px 0 0;padding:20px 24px 44px;width:100%;max-width:430px;max-height:90vh;overflow-y:auto}
-.handle{width:36px;height:4px;background:var(--border-mid);border-radius:2px;margin:0 auto 22px}
-.sheet-title{font-family:'Playfair Display',serif;font-size:19px;font-weight:700;color:var(--text-primary);margin-bottom:3px;line-height:1.3}
-.sheet-sub{font-family:'Space Mono',monospace;font-size:10px;color:var(--text-muted);margin-bottom:20px}
-.slabel{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--crema);text-transform:uppercase;margin-bottom:8px}
-.big-input-wrap{position:relative;margin-bottom:14px}
-.big-input{width:100%;background:var(--bg);border:1px solid var(--border-mid);border-radius:12px;padding:14px 50px 14px 16px;font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--espresso);-webkit-appearance:none}
-.big-input:focus{outline:none;border-color:var(--crema)}
-.big-unit{position:absolute;right:16px;top:50%;transform:translateY(-50%);font-family:'Space Mono',monospace;font-size:12px;color:var(--text-muted)}
-.quick-row{display:flex;gap:8px;margin-bottom:20px}
-.qbtn{flex:1;padding:9px 0;background:var(--bg-sub);border:none;border-radius:10px;font-family:'Space Mono',monospace;font-size:11px;color:var(--text-secondary);cursor:pointer}
-.qbtn:active{background:var(--crema-light);color:var(--crema)}
-.memo-area{width:100%;background:var(--bg);border:0.5px solid var(--border-mid);border-radius:10px;padding:10px 14px;font-family:'Playfair Display',serif;font-style:italic;font-size:14px;color:var(--text-secondary);resize:none;min-height:60px;line-height:1.5;margin-bottom:18px}
-.memo-area:focus{outline:none;border-color:var(--crema)}
-.row-btns{display:flex;gap:10px}
-.btn-cancel{flex:1;padding:14px;background:var(--bg-sub);border:none;border-radius:12px;font-family:'Space Mono',monospace;font-size:11px;color:var(--text-secondary);cursor:pointer;letter-spacing:1px}
-.btn-save{flex:2;padding:14px;background:var(--espresso);border:none;border-radius:12px;font-family:'Bebas Neue',sans-serif;font-size:22px;color:#fff;cursor:pointer;letter-spacing:2px}
-.btn-save:active,.btn-primary:active{opacity:.85}
-.btn-archive{width:100%;padding:12px;background:none;border:0.5px solid var(--border-mid);border-radius:12px;font-family:'Space Mono',monospace;font-size:10px;color:var(--text-muted);cursor:pointer;margin-top:10px;letter-spacing:1px}
-.btn-archive:active{color:var(--red);border-color:var(--red)}
-
-/* FORMS */
-.form-wrap{padding:20px}
-.fg{margin-bottom:14px}
-.fl{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2.5px;color:var(--crema);text-transform:uppercase;margin-bottom:6px;display:block}
-.fi{width:100%;background:#fff;border:0.5px solid var(--border-mid);border-radius:10px;padding:12px 14px;font-family:'Playfair Display',serif;font-size:15px;color:var(--text-primary);-webkit-appearance:none}
-.fi:focus{outline:none;border-color:var(--crema)}
-.fi::placeholder{color:var(--text-muted)}
-.f2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.fs{width:100%;background:#fff;border:0.5px solid var(--border-mid);border-radius:10px;padding:12px 14px;font-family:'Space Mono',monospace;font-size:11px;color:var(--text-primary);-webkit-appearance:none;cursor:pointer}
-.fs:focus{outline:none;border-color:var(--crema)}
-.roaster-wrap{display:flex;gap:8px;align-items:center}
-.roaster-tag{font-family:'Space Mono',monospace;font-size:11px;background:var(--espresso);color:#fff;border-radius:8px;padding:10px 14px;white-space:nowrap;flex-shrink:0}
-.roaster-free{flex:1;background:#fff;border:0.5px solid var(--border-mid);border-radius:10px;padding:12px 14px;font-family:'Playfair Display',serif;font-size:15px;color:var(--text-primary);-webkit-appearance:none}
-.roaster-free:focus{outline:none;border-color:var(--crema)}
-.roaster-free::placeholder{color:var(--text-muted)}
-.btn-primary{width:100%;padding:16px;background:var(--espresso);border:none;border-radius:12px;font-family:'Bebas Neue',sans-serif;font-size:22px;color:#fff;cursor:pointer;letter-spacing:2px;margin-top:8px}
-.btn-primary.busy{opacity:.6;pointer-events:none}
-
-/* LOG */
-.picker-row{display:flex;gap:8px;overflow-x:auto;padding:0 0 4px;margin-bottom:4px;scrollbar-width:none}
-.picker-row::-webkit-scrollbar{display:none}
-.chip{flex-shrink:0;padding:7px 12px;border:0.5px solid var(--border-mid);border-radius:99px;font-family:'Space Mono',monospace;font-size:10px;color:var(--text-secondary);background:#fff;cursor:pointer;white-space:nowrap}
-.chip.on{background:var(--espresso);color:#fff;border-color:var(--espresso)}
-.chip.free-chip{border-style:dashed}
-.place-row{display:flex;gap:8px}
-.pchip{flex:1;padding:9px 0;border:0.5px solid var(--border-mid);border-radius:10px;font-family:'Space Mono',monospace;font-size:10px;color:var(--text-secondary);background:#fff;cursor:pointer;text-align:center}
-.pchip.on{background:var(--espresso);color:#fff;border-color:var(--espresso)}
-.log-card{background:#fff;border:0.5px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px}
-.lc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
-.lc-name{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:var(--text-primary);line-height:1.3;flex:1;margin-right:8px}
-.lc-g{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--crema);letter-spacing:1px;white-space:nowrap}
-.lc-g sub{font-size:11px}
-.lc-meta{font-family:'Space Mono',monospace;font-size:10px;color:var(--text-muted);margin-bottom:4px}
-.lc-memo{font-family:'Playfair Display',serif;font-style:italic;font-size:12px;color:var(--text-muted);line-height:1.5}
-.sec-label{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--text-muted);text-transform:uppercase;padding:16px 16px 8px}
-
-/* DONE */
-.done-section{padding:0 16px}
-.done-card{background:#fff;border:0.5px solid var(--border);border-radius:14px;padding:16px;margin-bottom:10px;opacity:.7}
-.done-name{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--text-secondary);margin-bottom:3px}
-.done-meta{font-family:'Space Mono',monospace;font-size:10px;color:var(--text-muted);margin-bottom:8px}
-.done-memo{font-family:'Playfair Display',serif;font-style:italic;font-size:12px;color:var(--text-muted);line-height:1.5;margin-bottom:10px;padding-top:8px;border-top:0.5px solid var(--border)}
-.done-acts{display:flex;gap:8px}
-.btn-restore{flex:1;padding:8px 0;background:none;border:0.5px solid var(--border-mid);border-radius:8px;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--crema);cursor:pointer;text-align:center}
-.btn-del{padding:8px 14px;background:none;border:0.5px solid var(--border-mid);border-radius:8px;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--text-muted);cursor:pointer}
-.btn-del:active{color:var(--red);border-color:var(--red)}
-
-/* NOTION STATUS BAR */
-.nbar{display:flex;align-items:center;gap:6px;padding:8px 16px;font-family:'Space Mono',monospace;font-size:10px;color:var(--text-muted);border-bottom:0.5px solid var(--border)}
-.ndot{width:6px;height:6px;border-radius:50%;background:var(--text-muted);flex-shrink:0;transition:background .3s}
-.ndot.ok{background:var(--green)}
-.ndot.err{background:var(--red)}
-.nsetup-btn{margin-left:auto;font-family:'Space Mono',monospace;font-size:9px;color:var(--crema);background:none;border:0.5px solid var(--border-mid);border-radius:6px;padding:3px 8px;cursor:pointer;letter-spacing:1px}
-
-/* TOAST */
-.toast{position:fixed;bottom:calc(var(--nav-h)+12px);left:50%;transform:translateX(-50%) translateY(10px);background:var(--espresso);border-radius:10px;padding:10px 20px;font-family:'Space Mono',monospace;font-size:11px;color:#fff;letter-spacing:1px;z-index:60;opacity:0;transition:all .22s;pointer-events:none;white-space:nowrap}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-
-/* GRAM DIAL (ダイヤル式グラム入力) */
-.gd{--gd-a:#b07820;--gd-hi:#e0a848;--gd-soft:rgba(176,120,32,.12);position:relative;background:#fff;border:0.5px solid var(--border-mid);border-radius:16px;padding:14px 14px 12px}
-.gd[data-mode="ice"]{--gd-a:#4f8aa6;--gd-hi:#9fd0e6;--gd-soft:rgba(79,138,166,.12)}
-.gd-seg{position:relative;display:grid;grid-template-columns:1fr 1fr;background:var(--bg-sub);border-radius:99px;padding:3px}
-.gd-seg button{position:relative;z-index:1;height:34px;border:0;background:transparent;color:var(--text-secondary);font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;border-radius:99px;cursor:pointer}
-.gd-seg button[aria-checked="true"]{color:#fff;font-weight:700}
+/* gram dial (dark/light aware) */
+.gd{--gd-a:var(--hot);--gd-hi:var(--hot-hi);--gd-soft:color-mix(in srgb,var(--hot) 16%,transparent);position:relative;background:var(--s1);border-radius:26px;padding:14px 14px 12px}
+.gd[data-mode="ice"]{--gd-a:var(--ice);--gd-hi:var(--ice-hi);--gd-soft:color-mix(in srgb,var(--ice) 16%,transparent)}
+.gd-seg{position:relative;display:grid;grid-template-columns:1fr 1fr;background:var(--s2);border-radius:99px;padding:3px}
+.gd-seg button{position:relative;z-index:1;height:38px;border:0;background:transparent;color:var(--tx2);font:800 14px var(--num);letter-spacing:.06em;border-radius:99px;cursor:pointer}
+.gd-seg button[aria-checked="true"]{color:var(--ink)}
 .gd-pill{position:absolute;top:3px;bottom:3px;left:3px;width:calc(50% - 3px);border-radius:99px;background:var(--gd-a);transition:transform .22s cubic-bezier(.2,.8,.2,1),background .22s}
 .gd[data-mode="ice"] .gd-pill{transform:translateX(100%)}
 .gd-dial{position:relative;width:min(100%,300px);aspect-ratio:1;margin:8px auto -26px;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;outline:none;cursor:grab}
-.gd-dial:active{cursor:grabbing}
 .gd-dial svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
-.gd-ringbg{stroke:#efe8dd}
+.gd-ringbg{stroke:var(--s2)}
 .gd-ringfg{stroke:var(--gd-a);transition:stroke .2s}
-.gd-tk{stroke:rgba(26,15,8,.2);transition:stroke .1s}
-.gd-tk.major{stroke:rgba(26,15,8,.45)}
+.gd-tk{stroke:var(--tick);transition:stroke .1s}
+.gd-tk.major{stroke:var(--tickM)}
 .gd-tk.on{stroke:var(--gd-a)}
-.gd-lbl{fill:var(--text-muted);font-family:'Space Mono',monospace;font-size:10px}
-.gd-pdot{fill:var(--gd-a);opacity:.6}
+.gd-lbl{fill:var(--tx3);font-family:var(--num);font-weight:700;font-size:10px}
+.gd-pdot{fill:var(--gd-a);opacity:.7}
 .gd-knob{transform-origin:160px 160px;transition:transform .09s ease-out}
 .gd-dial.dragging .gd-knob{transition:none}
-.gd-kbody{fill:url(#gd-kg);stroke:#120a05;stroke-width:2}
+#gd-kg stop:nth-child(1){stop-color:var(--k1)}#gd-kg stop:nth-child(2){stop-color:var(--k2)}#gd-kg stop:nth-child(3){stop-color:var(--k3)}
+.gd-kbody{fill:url(#gd-kg);stroke:var(--kst);stroke-width:2}
 .gd-grip{stroke:rgba(255,255,255,.06);stroke-width:2}
 .gd-kind{fill:var(--gd-hi);transition:fill .2s}
-.gd-kshadow{opacity:.35;transition:opacity .15s}
-.gd-dial.dragging .gd-kshadow{opacity:.5}
+.gd-kshadow{opacity:.35}
 .gd-center{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;text-align:center}
-.gd-num{font-family:'Bebas Neue',sans-serif;font-size:62px;line-height:.9;color:var(--gd-hi);letter-spacing:1px;font-variant-numeric:tabular-nums;transition:color .2s}
-.gd-unit{font-family:'Bebas Neue',sans-serif;font-size:22px;color:#8a6a4e;margin-left:2px}
-.gd-hint{font-family:'Space Mono',monospace;font-size:9px;color:#b39a80;letter-spacing:2px;margin-top:4px}
+.gd-num{font:800 58px/.95 var(--num);color:var(--gd-hi);letter-spacing:-.03em;font-variant-numeric:tabular-nums;transition:color .2s}
+.gd-unit{font:800 20px var(--num);color:rgba(255,235,210,.55);margin-left:3px}
+.gd-hint{font-size:11px;color:rgba(255,235,210,.5);margin-top:6px}
 .gd-dial:focus-visible .gd-kbody{stroke:var(--gd-a)}
 .gd-presets{position:relative;z-index:1;display:flex;gap:8px}
-.gd-chip{flex:1;height:36px;border:0.5px solid var(--border-mid);border-radius:99px;background:#fff;color:var(--text-secondary);font-family:'Space Mono',monospace;font-size:11px;cursor:pointer}
-.gd-chip.on{background:var(--espresso);color:#fff;border-color:var(--espresso)}
-.gd-ratio{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:14px;padding-top:12px;border-top:0.5px solid var(--border)}
-.gd-rlabel{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--text-muted)}
-.gd-rbtn{width:34px;height:34px;border-radius:50%;border:0.5px solid var(--border-mid);background:#fff;color:var(--text-primary);font-family:'Space Mono',monospace;font-size:17px;line-height:1;cursor:pointer}
-.gd-rbtn:active{background:var(--bg-sub)}
+.gd-chip{flex:1;height:42px;border-radius:99px;background:var(--s2);color:var(--tx2);font:800 14px var(--num);cursor:pointer;border:0}
+.gd-chip.on{background:var(--tx);color:var(--ink)}
+.gd-ratio{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.gd-rlabel{font-size:12px;font-weight:600;color:var(--tx2)}
+.gd-rbtn{width:40px;height:40px;border-radius:50%;border:0;background:var(--s2);color:var(--gd-a);font:700 20px var(--num);cursor:pointer}
 .gd-rbtn:disabled{opacity:.3}
-.gd-rval{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--gd-a);min-width:3.6ch;text-align:center;letter-spacing:1px;font-variant-numeric:tabular-nums}
+.gd-rval{font:800 28px var(--num);color:var(--gd-a);min-width:3.6ch;text-align:center;font-variant-numeric:tabular-nums}
 .gd-rchips{display:flex;justify-content:center;gap:6px;margin-top:8px}
-.gd-rchip{height:26px;padding:0 10px;border-radius:99px;border:0.5px solid var(--border-mid);background:#fff;color:var(--text-muted);font-family:'Space Mono',monospace;font-size:10px;cursor:pointer}
-.gd-rchip.on{border-color:var(--gd-a);color:var(--gd-a);background:var(--gd-soft)}
-.gd-sub{text-align:center;font-family:'Space Mono',monospace;font-size:12px;color:var(--text-secondary);margin-top:10px;min-height:16px}
-.gd-opts{display:flex;justify-content:space-between;margin-top:12px;padding-top:10px;border-top:0.5px solid var(--border);font-family:'Space Mono',monospace;font-size:10px;color:var(--text-muted)}
+.gd-rchip{height:30px;padding:0 12px;border-radius:99px;border:0;background:var(--s2);color:var(--tx2);font:700 12px var(--num);cursor:pointer}
+.gd-rchip.on{background:var(--gd-soft);color:var(--gd-a)}
+.gd-sub{text-align:center;font:700 13px var(--num);color:var(--tx2);margin-top:10px;min-height:16px}
+.gd-opts{display:flex;justify-content:space-between;margin-top:12px;padding-top:10px;border-top:1px solid var(--line);font-size:12px;color:var(--tx3)}
 .gd-opts label{display:flex;gap:6px;align-items:center;cursor:pointer}
 .gd-opts input{accent-color:var(--gd-a)}
 .gd-haptic{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
 #gd-wrap[hidden]{display:none!important}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--a,var(--hot));outline-offset:2px}
+[data-mode=hot]{--a:var(--hot)}[data-mode=ice]{--a:var(--ice)}
+.app{max-width:480px;margin:0 auto}
+
+.head{padding:52px 22px 6px}
+.head h1{margin:0;font-size:38px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.head p{margin:8px 0 0;color:var(--tx2);font-size:13px}
+.bar{position:sticky;top:24px;z-index:10;padding:12px 16px 14px;background:linear-gradient(var(--bg) 70%,transparent);display:flex;gap:6px}
+.bar button{flex:1;border:0;background:var(--s1);color:var(--tx2);border-radius:99px;padding:11px 0;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s,color .15s}
+.bar button.on{background:var(--tx);color:var(--ink)}
+
+.list{padding:0 16px;display:flex;flex-direction:column;gap:12px}
+.card{background:var(--s1);border-radius:24px;overflow:hidden;transition:background .2s}
+.card.open{background:var(--s2)}
+.top{display:grid;grid-template-columns:auto 1fr auto;gap:0 14px;align-items:center;padding:16px 8px 6px 18px;cursor:pointer}
+.dose{font:800 44px/1 var(--num);color:var(--a);letter-spacing:-.03em;min-width:58px}
+.dose small{font-size:15px;font-weight:700;margin-left:2px;opacity:.8}
+.nm{min-width:0}
+.nm b{display:block;font-size:16px;font-weight:700;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.meta{display:flex;flex-wrap:wrap;gap:2px 12px;margin-top:5px;font:600 12px var(--num);color:var(--tx2)}
+.star{width:48px;height:48px;border:0;background:none;border-radius:50%;cursor:pointer;display:grid;place-items:center}
+.star svg{width:24px;height:24px;fill:none;stroke:var(--tx3);stroke-width:1.8;stroke-linejoin:round;transition:transform .2s cubic-bezier(.3,1.6,.5,1)}
+.star.on svg{fill:var(--a);stroke:var(--a)}
+.star.pop svg{transform:scale(1.35)}
+.spark{display:block;width:100%;height:34px;padding:0 18px 16px;margin-top:-2px}
+.spark svg{width:100%;height:100%;overflow:visible}
+
+.body{display:none;padding:2px 18px 18px}
+.card.open .body{display:block}
+.card.open .spark{display:none}
+.chart{margin:4px -4px 4px}
+.chart svg{width:100%;display:block;overflow:visible}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);margin:6px 0 4px}
+.stats div{padding:6px 0 6px 12px;border-left:1px solid var(--line)}
+.stats div:first-child{border-left:0;padding-left:0}
+.stats b{display:block;font:800 20px/1.1 var(--num);letter-spacing:-.02em;white-space:nowrap}
+.stats i{font-style:normal;font-size:11px;color:var(--tx3);display:block;margin-top:2px}
+.steps{margin:16px 0 0;padding:0;list-style:none;border-top:1px solid var(--line)}
+.steps li{display:grid;grid-template-columns:54px 64px 1fr;align-items:baseline;gap:6px;padding:11px 0;border-bottom:1px solid var(--line);font-size:14px}
+.steps.tv li{grid-template-columns:54px 64px 1fr auto}.steps .c{font:800 14px var(--num);color:var(--tx);background:var(--bg);padding:3px 9px;border-radius:99px}
+.steps .t{font:700 14px var(--num);color:var(--tx2)}
+.steps .g{font:800 16px var(--num);color:var(--a)}
+.note{margin-top:14px;font-size:13px;line-height:1.7;color:var(--tx2)}
+.note b{color:var(--tx);font-weight:600;margin-right:8px}
+.acts{display:flex;gap:10px;margin-top:18px}
+.use{flex:1;border:0;border-radius:16px;padding:16px;background:var(--a);color:var(--ink);font-size:15px;font-weight:800;cursor:pointer}
+.use:active{transform:scale(.98)}
+.ghost{border:0;background:var(--s1);border-radius:16px;padding:0 20px;font-size:14px;font-weight:600;cursor:pointer;color:var(--tx)}
+.empty{text-align:center;color:var(--tx3);font-size:14px;line-height:1.8;padding:64px 20px}
+
+.fab svg{width:18px;height:18px;stroke:currentColor;stroke-width:2.6;stroke-linecap:round}
+
+/* sheet */
+.scrim{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:opacity .25s}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;z-index:41;left:50%;bottom:0;width:100%;max-width:480px;height:94vh;transform:translate(-50%,102%);background:var(--bg);border-radius:28px 28px 0 0;display:flex;flex-direction:column;transition:transform .32s cubic-bezier(.2,.9,.3,1)}
+.sheet.on{transform:translate(-50%,0)}
+.sh-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 8px}
+.sh-head h2{margin:0;font-size:20px;font-weight:800}
+.sh-x{width:40px;height:40px;border:0;border-radius:50%;background:var(--s1);cursor:pointer;font-size:18px;color:var(--tx2)}
+.sh-body{flex:1;overflow:auto;padding:4px 20px 24px;-webkit-overflow-scrolling:touch}
+.sh-foot{padding:12px 20px calc(16px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:var(--bg)}
+.sh-foot .use{width:100%}
+.fl{display:block;margin:22px 0 9px;font-size:12px;font-weight:600;color:var(--tx2)}
+.fi{width:100%;border:0;background:var(--s1);color:var(--tx);border-radius:14px;padding:14px 15px;font-size:16px;font-family:inherit}
+.fi::placeholder{color:var(--tx3)}
+.fi:focus{outline:2px solid var(--a);outline-offset:0}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.seg button{border:0;border-radius:16px;padding:15px;background:var(--s1);font-size:16px;font-weight:800;color:var(--tx3);cursor:pointer;transition:.15s}
+.seg button.on[data-v=hot]{background:var(--hot);color:var(--ink)}
+.seg button.on[data-v=ice]{background:var(--ice);color:var(--ink)}
+.chips{display:flex;gap:8px;overflow-x:auto;margin:0 -20px;padding:0 20px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chips button{flex:none;border:0;border-radius:99px;background:var(--s1);color:var(--tx2);padding:11px 17px;font-size:14px;font-weight:600;cursor:pointer}
+.chips button.on{background:var(--tx);color:var(--ink)}
+.trio{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stp{background:var(--s1);border-radius:16px;padding:10px 4px 6px;text-align:center}
+.stp .v{font:800 24px/1.2 var(--num);letter-spacing:-.02em}
+.stp .u{font-size:11px;color:var(--tx3);margin-bottom:2px}
+.stp div.b{display:grid;grid-template-columns:1fr 1fr}
+.stp button{border:0;background:none;height:42px;font-size:22px;color:var(--a);cursor:pointer;font-weight:700}
+.stp button:active{background:var(--s2);border-radius:12px}
+.prev{margin-top:14px;background:var(--s1);border-radius:18px;padding:14px 14px 10px}
+.prev .sum{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;font-size:12px;color:var(--tx2)}
+.prev .sum b{font:800 22px var(--num);color:var(--tx)}
+.rows{display:flex;flex-direction:column;gap:8px}
+.rows .r{display:grid;grid-template-columns:var(--cols,64px 72px 1fr 34px);gap:8px;align-items:center}
+.rows .r.h{font-size:11px;color:var(--tx3)}
+.rows .fi{padding:11px 10px;font-size:15px;text-align:center;font-family:var(--num);font-weight:700}
+.rows .fi.l{text-align:left;font-family:var(--jp);font-weight:500}
+.rows .x{border:0;background:none;color:var(--tx3);font-size:18px;height:40px;cursor:pointer}
+.mini{border:0;background:var(--s1);color:var(--tx);border-radius:12px;padding:11px 14px;font-size:13px;font-weight:600;cursor:pointer}
+.mini.a{color:var(--a)}
+.fav{display:flex;align-items:center;justify-content:space-between;margin-top:22px;background:var(--s1);border-radius:16px;padding:14px 16px;font-size:15px;font-weight:600}
+.sw{width:52px;height:32px;border-radius:16px;border:0;background:var(--s2);position:relative;cursor:pointer;transition:.2s}
+.sw::after{content:"";position:absolute;top:4px;left:4px;width:24px;height:24px;border-radius:50%;background:var(--tx);transition:.2s}
+.sw.on{background:var(--a)}.sw.on::after{left:24px;background:var(--ink)}
+.rows.tv{--cols:54px 60px 54px 1fr 30px}
+.gr{background:var(--s1);border-radius:18px;padding:16px 16px 12px}
+.gr .top2{display:flex;align-items:baseline;justify-content:space-between}
+.gr .big{font:800 44px/1 var(--num);letter-spacing:-.03em;color:var(--a)}
+.gr .nmv{font-size:13px;color:var(--tx2);font-weight:600}
+.gr .ctl{display:flex;align-items:center;gap:10px;margin-top:14px}
+.gr .ctl button{flex:none;width:46px;height:46px;border:0;border-radius:14px;background:var(--s2);font-size:13px;font-weight:800;font-family:var(--num);color:var(--a);cursor:pointer}
+.gr .ctl button:active{transform:scale(.94)}
+.gr .rng{display:flex;justify-content:space-between;font:700 11px var(--num);color:var(--tx3);margin-top:6px;padding:0 60px}
+input[type=range].sl{-webkit-appearance:none;appearance:none;flex:1;min-width:0;height:44px;background:transparent;touch-action:pan-y;margin:0}
+input[type=range].sl::-webkit-slider-runnable-track{height:8px;border-radius:4px;background:linear-gradient(90deg,var(--a) var(--p,40%),var(--s2) var(--p,40%))}
+input[type=range].sl::-webkit-slider-thumb{-webkit-appearance:none;width:32px;height:32px;margin-top:-12px;border-radius:50%;background:var(--tx);border:6px solid var(--a);box-shadow:0 2px 8px rgba(0,0,0,.5)}
+input[type=range].sl::-moz-range-track{height:8px;border-radius:4px;background:var(--s2)}
+input[type=range].sl::-moz-range-progress{height:8px;border-radius:4px;background:var(--a)}
+input[type=range].sl::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--tx);border:6px solid var(--a)}
+.del{width:100%;margin-top:14px;border:0;background:none;color:#ff8a7a;font-size:14px;font-weight:600;padding:14px;cursor:pointer}
+.toast{position:fixed;left:50%;top:46px;z-index:60;transform:translate(-50%,-24px);background:var(--tx);color:var(--ink);padding:12px 20px;border-radius:99px;font-size:14px;font-weight:700;opacity:0;pointer-events:none;transition:.28s;white-space:nowrap}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+
+.toast{top:auto;bottom:calc(92px + env(safe-area-inset-bottom));transform:translate(-50%,24px)}.toast.on{transform:translate(-50%,0)}
+.skel{background:linear-gradient(90deg,var(--s2) 25%,var(--s1) 50%,var(--s2) 75%);background-size:200% 100%;animation:sh 1.2s infinite;border-radius:24px;height:150px}
+@keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.empty button{margin-top:14px;border:0;border-radius:14px;background:var(--hot);color:var(--ink);padding:12px 20px;font-size:14px;font-weight:800;cursor:pointer}
+.nb.err i{background:var(--tx3)}
+.use.busy,.ghost.busy{opacity:.6;pointer-events:none}
+.use:disabled{opacity:.5}
+.chips button.free{border-style:dashed}
+.f-roaster{display:flex;gap:8px}.f-roaster .tag{flex:none;border-radius:14px;background:var(--tx);color:var(--ink);padding:0 16px;display:grid;place-items:center;font-size:14px;font-weight:700}.f-roaster .fi{flex:1;min-width:0}
+.ngi{display:grid;grid-template-columns:52px 1fr 52px;align-items:center;background:var(--s1);border:1px solid var(--cardbd);border-radius:14px}
+.ngi button{height:50px;border:0;background:none;font-size:22px;color:var(--hot);font-weight:700;cursor:pointer}
+.ngi input{border:0;background:none;text-align:center;font:800 20px var(--num);color:var(--tx);outline:0;min-width:0;width:100%}
+
 </style>
 </head>
-<body>
+<body data-tab="stock">
 <div class="app">
 
-  <!-- STOCK -->
-  <div class="screen active" id="sc-stock">
-    <div class="header">
-      <div class="eyebrow">Bean Cellar</div>
-      <div class="h-title">STOCK <em id="stock-count">—</em></div>
-      <div class="h-sub" id="stock-sub">—</div>
-    </div>
-    <div class="list" id="stock-list"></div>
-  </div>
+<section class="screen on" id="sc-stock"><div class="head"><h1>ストック</h1><p id="stock-sub">—</p></div><div style="height:14px"></div><div class="list2" id="stock-list"></div></section>
 
-  <!-- LOG -->
-  <div class="screen" id="sc-log">
-    <div class="header">
-      <div class="eyebrow">Bean Cellar</div>
-      <div class="h-title">LOG <em>IT</em></div>
-      <div class="h-sub" id="log-sub">—</div>
-    </div>
-    <div class="nbar">
-      <div class="ndot" id="ndot"></div>
-      <span id="nstatus">Notion未接続</span>
-      <button class="nsetup-btn" onclick="setupNotion()">接続設定</button>
-    </div>
-    <div class="form-wrap" style="padding-bottom:8px">
-      <div class="fg">
-        <label class="fl">Place</label>
-        <div class="place-row">
-          <button class="pchip on" data-place="家" onclick="selPlace(this)">家</button>
-          <button class="pchip" data-place="カフェ" onclick="selPlace(this)">カフェ</button>
-          <button class="pchip" data-place="外（職場・移動中など）" onclick="selPlace(this)">外</button>
-        </div>
-      </div>
-      <div class="fg">
-        <label class="fl">Bean</label>
-        <div class="picker-row" id="bean-picker"></div>
-        <input class="fi" id="log-free" type="text" placeholder="または名前を入力" style="margin-top:8px;display:none">
-      </div>
-      <div class="fg" id="gd-wrap">
-        <label class="fl">Grams used</label>
-        <div class="gd" id="gd" data-mode="hot">
+<section class="screen" id="sc-log"><div class="head"><h1>記録</h1><p id="log-sub">—</p></div>
+ <div class="nb" id="nbar"><i id="ndot"></i><span id="nstatus">—</span><button type="button" onclick="setupNotion()">接続設定</button></div>
+ <div class="form">
+  <label class="fl">飲んだ場所</label>
+  <div class="seg" id="place" style="grid-template-columns:repeat(3,1fr)"><button type="button" data-place="家" class="on">家</button><button type="button" data-place="カフェ">カフェ</button><button type="button" data-place="外（職場・移動中など）">外</button></div>
+  <label class="fl">豆</label>
+  <div class="chips" id="bean-picker"></div>
+  <input class="fi" id="log-free" placeholder="豆の名前を入力" style="margin-top:10px;display:none">
+  <div id="gd-wrap"><label class="fl">使用グラム</label>
+<div class="gd" id="gd" data-mode="hot">
           <div class="gd-seg" role="radiogroup" aria-label="ホット/アイス">
             <div class="gd-pill"></div>
             <button type="button" role="radio" aria-checked="true" data-mode="hot">HOT</button>
@@ -289,112 +327,45 @@ html,body{height:100%;background:var(--bg);color:var(--text-primary);font-family
           </div>
           <label class="gd-haptic" aria-hidden="true"><input type="checkbox" switch data-r="hs" tabindex="-1"></label>
         </div>
-      </div>
-      <div class="fg">
-        <label class="fl">Memo</label>
-        <input class="fi" id="log-memo" type="text" placeholder="味・気分・シーンなど">
-      </div>
-      <button class="btn-primary" id="btn-record">RECORD</button>
-    </div>
-    <div class="sec-label">Recent</div>
-    <div id="log-hist" style="padding:0 16px"></div>
   </div>
+  <label class="fl" for="log-memo">ひとことメモ</label><input class="fi" id="log-memo" placeholder="味・気分・シーンなど">
+  <div class="acts" style="margin-top:22px"><button class="use" id="btn-record">記録する</button></div>
+  <label class="fl" style="margin-top:30px">最近の記録</label><div id="log-hist"></div>
+ </div></section>
 
-  <!-- NEW -->
-  <div class="screen" id="sc-new">
-    <div class="header">
-      <div class="eyebrow">Bean Cellar</div>
-      <div class="h-title">NEW <em>BEAN</em></div>
-    </div>
-    <div class="form-wrap">
-      <div class="fg"><label class="fl">Bean Name</label>
-        <input class="fi" id="n-name" type="text" placeholder="例：エチオピア タラトゥ"></div>
-      <div class="fg"><label class="fl">Roaster</label>
-        <div class="roaster-wrap">
-          <span class="roaster-tag">obscura</span>
-          <input class="roaster-free" id="n-roaster" type="text" placeholder="または他のロースター名">
-        </div>
-      </div>
-      <div class="f2">
-        <div class="fg"><label class="fl">Roast Date</label>
-          <input class="fi" id="n-date" type="date"></div>
-        <div class="fg"><label class="fl">Grams</label>
-          <input class="fi" id="n-g" type="number" placeholder="200" min="1"></div>
-      </div>
-      <div class="f2">
-        <div class="fg"><label class="fl">Roast Level</label>
-          <select class="fs" id="n-level">
-            <option value="">—</option>
-            <option>浅煎り</option><option>中浅煎り</option><option>中煎り</option>
-            <option>中深煎り</option><option>深煎り</option>
-          </select></div>
-        <div class="fg"><label class="fl">Process</label>
-          <select class="fs" id="n-process">
-            <option value="">—</option>
-            <option>Washed</option><option>Natural</option><option>Honey</option><option>その他</option>
-          </select></div>
-      </div>
-      <div class="fg"><label class="fl">Memo</label>
-        <input class="fi" id="n-memo" type="text" placeholder="抽出メモや購入理由など"></div>
-      <button class="btn-primary" id="btn-add">ADD TO STOCK</button>
-    </div>
-  </div>
+<section class="screen" id="sc-recipes"><div class="head"><h1>レシピ</h1><p id="sub"></p></div><div class="bar" id="bar"></div><div class="list" id="list"></div></section>
 
-  <!-- DONE -->
-  <div class="screen" id="sc-done">
-    <div class="header">
-      <div class="eyebrow">Bean Cellar</div>
-      <div class="h-title">ALL <em>DONE</em></div>
-    </div>
-    <div style="height:12px"></div>
-    <div class="done-section" id="done-list"></div>
-  </div>
+<section class="screen" id="sc-new"><div class="head"><h1>豆を追加</h1><p>在庫に新しい豆を登録します</p></div>
+ <div class="form">
+  <label class="fl" for="n-name">豆の名前</label><input class="fi" id="n-name" placeholder="例：エチオピア タラトゥ">
+  <label class="fl" for="n-roaster">ロースター</label>
+  <div class="f-roaster"><span class="tag">obscura</span><input class="fi" id="n-roaster" placeholder="または他のロースター名"></div>
+  <div class="row2"><div><label class="fl" for="n-date">焙煎日</label><input class="fi" id="n-date" type="date"></div>
+   <div><label class="fl" for="n-g">購入グラム</label><div class="ngi"><button type="button" data-ng="-50" aria-label="50g減らす">−</button><input id="n-g" inputmode="numeric" value="200"><button type="button" data-ng="50" aria-label="50g増やす">＋</button></div></div></div>
+  <label class="fl">焙煎度</label>
+  <div class="chips" id="n-level"><button type="button">浅煎り</button><button type="button">中浅煎り</button><button type="button">中煎り</button><button type="button">中深煎り</button><button type="button">深煎り</button></div>
+  <label class="fl">精製方法</label>
+  <div class="chips" id="n-process"><button type="button">Washed</button><button type="button">Natural</button><button type="button">Honey</button><button type="button">その他</button></div>
+  <label class="fl" for="n-memo">メモ</label><input class="fi" id="n-memo" placeholder="抽出メモや購入理由など">
+  <div class="acts" style="margin-top:24px"><button class="use" id="btn-add">在庫に追加</button></div>
+ </div></section>
 
-  <nav class="bottom-nav">
-    <button class="nav-btn active" onclick="go('stock')">
-      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Stock
-    </button>
-    <button class="nav-btn" onclick="go('log')">
-      <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Log
-    </button>
-    <button class="nav-btn" onclick="go('new')">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>New
-    </button>
-    <button class="nav-btn" onclick="go('done')">
-      <svg viewBox="0 0 24 24"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>Done
-    </button>
-  </nav>
+<section class="screen" id="sc-done"><div class="head"><h1>使い切り</h1><p id="done-sub">—</p></div><div style="height:14px"></div><div class="list2" id="done-list"></div></section>
 </div>
 
-<!-- UPDATE MODAL -->
-<div class="overlay" id="modal">
-  <div class="sheet">
-    <div class="handle"></div>
-    <div class="sheet-title" id="m-name">—</div>
-    <div class="sheet-sub" id="m-meta">—</div>
-    <div class="slabel">Remaining Grams</div>
-    <div class="big-input-wrap">
-      <input class="big-input" id="m-g" type="number" min="0" inputmode="numeric">
-      <span class="big-unit">g</span>
-    </div>
-    <div class="quick-row">
-      <button class="qbtn" onclick="subG(13)">−13g</button>
-      <button class="qbtn" onclick="subG(14)">−14g</button>
-      <button class="qbtn" onclick="subG(16)">−16g</button>
-      <button class="qbtn" onclick="subG(18)">−18g</button>
-    </div>
-    <div class="slabel" style="margin-top:4px">Memo</div>
-    <textarea class="memo-area" id="m-memo" placeholder="メモを編集…"></textarea>
-    <div class="row-btns">
-      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
-      <button class="btn-save" id="btn-modal-save" onclick="saveModal()">SAVE</button>
-    </div>
-    <button class="btn-archive" onclick="archiveBean()">All done — move to archive</button>
-  </div>
-</div>
-
-<div class="toast" id="toast"></div>
-
+<button class="fab" id="add"><svg viewBox="0 0 18 18"><path d="M9 2v14M2 9h14"/></svg>登録</button>
+<nav class="nav" id="nav">
+ <button data-go="stock" class="on"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2"/></svg>ストック</button>
+ <button data-go="log"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>記録</button>
+ <button data-go="recipes"><svg viewBox="0 0 24 24"><path d="M3 17c4-1 6-6 9-6s5 5 9 6"/><path d="M3 21h18"/><path d="M12 3v4"/></svg>レシピ</button>
+ <button data-go="new"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>追加</button>
+ <button data-go="done"><svg viewBox="0 0 24 24"><path d="M21 8v13H3V8"/><rect x="1" y="3" width="22" height="5" rx="1"/><path d="M10 12h4"/></svg>完了</button>
+</nav>
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true"></div>
+<div class="scrim" id="mscrim"></div>
+<div class="sheet auto" id="msheet" role="dialog" aria-modal="true"></div>
+<div class="toast" id="toast" role="status"></div>
 <script>
 // ── CONFIG ──
 const PROXY   = 'https://notion-proxy.1414souta.workers.dev';
@@ -515,15 +486,12 @@ async function createLog(entry) {
 // ── NOTION STATUS ──
 function updateNStatus() {
   const t = getToken();
-  const dot = document.getElementById('ndot');
-  const txt = document.getElementById('nstatus');
-  dot.className = 'ndot' + (t ? ' ok' : '');
-  txt.textContent = t ? 'Notion接続済み — 全データ同期' : 'Notion未接続 — トークンを設定してください';
+  document.getElementById('nbar').classList.toggle('err', !t);
+  document.getElementById('nstatus').textContent = t ? 'Notion に接続済み' : 'Notion 未接続（トークンを設定してください）';
 }
-
 function setupNotion() {
   const cur = getToken();
-  const t = prompt('Notion Integration Token\n（secret_xxxxx の形式）', cur || '');
+  const t = prompt('Notion Integration Token\n（secret_xxxxx または ntn_xxxxx の形式）', cur || '');
   if (t !== null) {
     t.trim() ? localStorage.setItem(TK, t.trim()) : localStorage.removeItem(TK);
     updateNStatus();
@@ -538,185 +506,179 @@ let selectedBeanId = null;
 let selectedPlace = '家';
 let editingPageId = null;
 let currentTab = 'stock';
+const TABS = ['stock','log','recipes','new','done'];
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
 // ── NAVIGATION ──
 function go(tab) {
   currentTab = tab;
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('sc-' + tab).classList.add('active');
-  document.querySelectorAll('.nav-btn')[['stock','log','new','done'].indexOf(tab)].classList.add('active');
+  document.body.dataset.tab = tab;
+  TABS.forEach(k => document.getElementById('sc-' + k).classList.toggle('on', k === tab));
+  document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('on', b.dataset.go === tab));
+  window.scrollTo(0, 0);
   if (tab === 'stock') loadStock();
   if (tab === 'log') { renderPicker(); renderLogHist(); }
+  if (tab === 'recipes') renderR();
   if (tab === 'done') loadDone();
 }
+document.getElementById('nav').addEventListener('click', e => { const b = e.target.closest('[data-go]'); if (b) go(b.dataset.go); });
 
 // ── HELPERS ──
 const daysSince = d => d ? Math.floor((Date.now() - new Date(d)) / 86400000) : null;
-const fillCls = p => p > 50 ? 'fill-hi' : p > 20 ? 'fill-md' : 'fill-lo';
-
-function skeletonHTML() {
-  return `<div class="skeleton-card"><div class="skeleton" style="width:60%;height:18px;margin-bottom:12px"></div><div class="skeleton" style="width:40%;height:14px;margin-bottom:16px"></div><div class="skeleton" style="width:100%;height:8px"></div></div>`.repeat(3);
-}
+const skeletonHTML = () => '<div class="skel"></div>'.repeat(3);
 
 // ── STOCK SCREEN ──
 async function loadStock() {
   const el = document.getElementById('stock-list');
   el.innerHTML = skeletonHTML();
   if (!getToken()) {
-    el.innerHTML = `<div class="empty"><div class="empty-icon">🔑</div><div class="empty-txt">Notionトークンを設定してください<br><br><button onclick="setupNotion()" style="font-family:'Space Mono',monospace;font-size:11px;padding:10px 20px;background:var(--espresso);color:#fff;border:none;border-radius:8px;cursor:pointer;letter-spacing:1px">接続設定</button></div></div>`;
-    document.getElementById('stock-count').textContent = '—';
+    el.innerHTML = '<div class="empty">Notionのトークンを設定してください。<br><button onclick="setupNotion()">接続設定</button></div>';
     document.getElementById('stock-sub').textContent = 'Notion未接続';
     return;
   }
   const beans = await fetchStock();
   if (!beans) {
-    el.innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-txt">Notionへの接続に失敗しました<br>トークンとCORSプロキシを確認してください</div></div>`;
+    el.innerHTML = '<div class="empty">Notionに接続できませんでした。<br>トークンとプロキシを確認してください。</div>';
     return;
   }
   stockData = beans;
-  document.getElementById('stock-count').textContent = beans.length;
   const totalG = beans.reduce((s, b) => s + (b.remainGrams || 0), 0);
-  document.getElementById('stock-sub').textContent = `${totalG}g remaining · ${beans.length} bean${beans.length !== 1 ? 's' : ''}`;
-
+  document.getElementById('stock-sub').textContent = `残り ${Math.round(totalG * 10) / 10}g　${beans.length}袋`;
   if (!beans.length) {
-    el.innerHTML = `<div class="empty"><div class="empty-icon">☕</div><div class="empty-txt">No beans in stock<br>Add one from NEW</div></div>`;
+    el.innerHTML = '<div class="empty">在庫がありません。<br>「追加」から豆を登録できます。</div>';
     return;
   }
-
   el.innerHTML = beans.map(b => {
-    const pct = b.totalGrams ? Math.round((b.remainGrams / b.totalGrams) * 100) : 0;
+    const pct = b.totalGrams ? Math.max(0, Math.min(100, Math.round((b.remainGrams / b.totalGrams) * 100))) : 0;
     const days = daysSince(b.roastDate);
-    const isLow = b.remainGrams <= b.totalGrams * 0.2;
-    const badges = [b.roastLevel, b.process].filter(Boolean);
-    const meta = [b.roaster, days !== null ? 'Day ' + days : ''].filter(Boolean).join(' · ');
-    const sCls = isLow ? 's-low' : 's-ok';
-    const sLabel = isLow ? 'LOW' : 'IN STOCK';
-    return `<div class="card" onclick="openModal('${b.id}')">
-      <div class="card-top"><div class="bean-name">${b.name}</div><span class="status-badge ${sCls}">${sLabel}</span></div>
-      <div class="meta">${meta}</div>
-      ${badges.length ? `<div class="badges">${badges.map(t=>`<span class="badge">${t}</span>`).join('')}</div>` : ''}
-      <div class="grams-row"><div class="grams-num">${b.remainGrams}<sub>g</sub></div><div class="grams-of">/ ${b.totalGrams}g</div></div>
-      <div class="prog-track"><div class="prog-fill ${fillCls(pct)}" style="width:${Math.max(0,pct)}%"></div></div>
-      ${b.memo ? `<div class="card-memo">${b.memo}</div>` : ''}
+    const low = b.remainGrams <= b.totalGrams * 0.2;
+    const tags = [b.roastLevel, b.process].filter(Boolean);
+    return `<div class="sc" data-bean="${b.id}" role="button" tabindex="0">
+      <div class="sc-top"><div class="sc-g ${low ? 'low' : ''}">${b.remainGrams}<small>g</small></div>
+        <div class="nm"><b>${esc(b.name)}</b><div class="meta">${b.roaster ? `<span>${esc(b.roaster)}</span>` : ''}${days !== null ? `<span>焙煎から${days}日</span>` : ''}</div></div>
+        <span class="pill ${low ? 'low' : 'ok'}">${low ? '残り少ない' : '在庫あり'}</span></div>
+      <div class="prog"><i class="${low ? 'low' : ''}" style="width:${pct}%"></i></div>
+      <div class="of"><span>${pct}%</span><span>${b.totalGrams}g入り</span></div>
+      ${tags.length ? `<div class="tags">${tags.map(t => `<span>${esc(t)}</span>`).join('')}</div>` : ''}
+      ${b.memo ? `<div class="memo2">${esc(b.memo)}</div>` : ''}
     </div>`;
   }).join('');
 }
+document.getElementById('stock-list').addEventListener('click', e => { const c = e.target.closest('[data-bean]'); if (c) openModal(c.dataset.bean); });
+document.getElementById('stock-list').addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[data-bean]')) { e.preventDefault(); e.target.click(); } });
 
-// ── MODAL ──
+// ── STOCK MODAL ──
 function openModal(id) {
   const b = stockData.find(x => x.id === id);
   if (!b) return;
   editingPageId = id;
-  document.getElementById('m-name').textContent = b.name;
   const days = daysSince(b.roastDate);
-  document.getElementById('m-meta').textContent = [b.roaster, days !== null ? 'Day ' + days : ''].filter(Boolean).join(' · ');
-  document.getElementById('m-g').value = b.remainGrams;
-  document.getElementById('m-memo').value = b.memo || '';
-  document.getElementById('modal').classList.add('open');
-  setTimeout(() => document.getElementById('m-g').focus(), 250);
+  document.getElementById('msheet').innerHTML = `<div style="width:36px;height:4px;border-radius:2px;background:var(--line);margin:10px auto 6px"></div>
+    <div class="sh-head"><h2>${esc(b.name)}</h2><button class="sh-x" data-mx="1" aria-label="閉じる">✕</button></div>
+    <div class="sh2"><div class="meta" style="margin:0 0 4px">${b.roaster ? `<span>${esc(b.roaster)}</span>` : ''}${days !== null ? `<span>焙煎から${days}日</span>` : ''}</div>
+    <label class="fl">残りグラム</label>
+    <div class="bigin"><button data-mg="-1" aria-label="1g減らす">−</button><input id="m-g" type="number" min="0" inputmode="numeric" value="${b.remainGrams}" aria-label="残りグラム"><button data-mg="1" aria-label="1g増やす">＋</button></div>
+    <div class="quick"><button data-ms="13">−13g</button><button data-ms="14">−14g</button><button data-ms="16">−16g</button><button data-ms="18">−18g</button></div>
+    <label class="fl" for="m-memo">メモ</label><textarea class="fi" id="m-memo" style="min-height:76px;resize:none;line-height:1.6" placeholder="メモを編集">${esc(b.memo)}</textarea>
+    <div class="two"><button class="ghost" id="btn-archive" style="height:54px">使い切り</button><button class="use" id="btn-modal-save">保存</button></div></div>`;
+  document.getElementById('mscrim').classList.add('on');
+  document.getElementById('msheet').classList.add('on');
 }
-function closeModal() { document.getElementById('modal').classList.remove('open'); editingPageId = null; }
-function subG(g) { const i = document.getElementById('m-g'); i.value = Math.max(0, parseInt(i.value || 0) - g); }
-
+function closeModal() { document.getElementById('mscrim').classList.remove('on'); document.getElementById('msheet').classList.remove('on'); editingPageId = null; }
+document.getElementById('mscrim').addEventListener('click', closeModal);
+document.getElementById('msheet').addEventListener('click', e => {
+  const t = e.target.closest('[data-mg],[data-ms],[data-mx],#btn-modal-save,#btn-archive'); if (!t) return;
+  const i = document.getElementById('m-g');
+  if (t.dataset.mg) i.value = Math.max(0, (parseFloat(i.value) || 0) + +t.dataset.mg);
+  else if (t.dataset.ms) i.value = Math.max(0, Math.round(((parseFloat(i.value) || 0) - +t.dataset.ms) * 10) / 10);
+  else if (t.dataset.mx) closeModal();
+  else if (t.id === 'btn-modal-save') saveModal();
+  else if (t.id === 'btn-archive') archiveBean();
+});
 async function saveModal() {
   if (!editingPageId) return;
   const btn = document.getElementById('btn-modal-save');
-  btn.textContent = '...'; btn.classList.add('busy');
-  const val = Math.max(0, parseInt(document.getElementById('m-g').value) || 0);
+  btn.textContent = '保存中…'; btn.classList.add('busy');
+  const val = Math.max(0, Math.round((parseFloat(document.getElementById('m-g').value) || 0) * 10) / 10);
   const memo = document.getElementById('m-memo').value.trim();
   const bean = stockData.find(b => b.id === editingPageId);
-  const pct = bean ? val / bean.totalGrams : 1;
+  const pct = bean && bean.totalGrams ? val / bean.totalGrams : 1;
   const status = pct <= 0 ? 'DONE' : pct <= 0.2 ? 'LOW' : 'IN STOCK';
   const ok = await updateStock(editingPageId, val, memo, status);
-  btn.textContent = 'SAVE'; btn.classList.remove('busy');
-  if (ok) { closeModal(); loadStock(); showToast('Updated'); }
-  else showToast('保存失敗 — 接続を確認してください');
+  btn.textContent = '保存'; btn.classList.remove('busy');
+  if (ok) { closeModal(); loadStock(); showToast('更新しました'); }
+  else showToast('保存に失敗しました。接続を確認してください');
 }
-
 async function archiveBean() {
   if (!editingPageId) return;
   const ok = await updateStock(editingPageId, 0, document.getElementById('m-memo').value.trim(), 'DONE');
-  if (ok) { closeModal(); loadStock(); showToast('Archived ☕'); }
-  else showToast('更新失敗');
+  if (ok) { closeModal(); loadStock(); showToast('使い切りに移しました'); }
+  else showToast('更新に失敗しました');
 }
-
-document.getElementById('modal').addEventListener('click', e => { if (e.target === document.getElementById('modal')) closeModal(); });
 
 // ── LOG ──
 function renderPicker() {
   const active = stockData.filter(b => b.remainGrams > 0);
-  const picker = document.getElementById('bean-picker');
-  picker.innerHTML = active.map(b =>
-    `<button class="chip${selectedBeanId === b.id ? ' on' : ''}" onclick="selBean('${b.id}',this)">${b.name}</button>`
-  ).join('') + `<button class="chip free-chip${!selectedBeanId ? ' on' : ''}" onclick="selBean(null,this)">フリー入力</button>`;
+  if (selectedBeanId && !active.some(b => b.id === selectedBeanId)) selectedBeanId = null;
+  document.getElementById('bean-picker').innerHTML = active.map(b =>
+    `<button type="button" data-sb="${b.id}" class="${selectedBeanId === b.id ? 'on' : ''}">${esc(b.name)}</button>`
+  ).join('') + `<button type="button" data-sb="" class="free ${!selectedBeanId ? 'on' : ''}">フリー入力</button>`;
   document.getElementById('log-free').style.display = selectedBeanId ? 'none' : 'block';
-  document.getElementById('log-sub').textContent = loadLogCache().length + ' records total';
 }
-
-function selBean(id, el) {
-  selectedBeanId = id;
-  document.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
-  el.classList.add('on');
-  document.getElementById('log-free').style.display = id ? 'none' : 'block';
-}
-
-function selPlace(el) {
-  selectedPlace = el.dataset.place;
-  document.querySelectorAll('.pchip').forEach(c => c.classList.remove('on'));
-  el.classList.add('on');
+document.getElementById('bean-picker').addEventListener('click', e => {
+  const b = e.target.closest('[data-sb]'); if (!b) return;
+  selectedBeanId = b.dataset.sb || null; renderPicker();
+});
+function setPlace(p) {
+  selectedPlace = p;
+  document.querySelectorAll('#place button').forEach(c => c.classList.toggle('on', c.dataset.place === p));
   updateGdVisibility();
 }
+document.getElementById('place').addEventListener('click', e => { const b = e.target.closest('[data-place]'); if (b) setPlace(b.dataset.place); });
 // ダイヤルは「家」のときだけ表示
-function updateGdVisibility() {
-  const w = document.getElementById('gd-wrap');
-  if (w) w.hidden = selectedPlace !== '家';
-}
+function updateGdVisibility() { const w = document.getElementById('gd-wrap'); if (w) w.hidden = selectedPlace !== '家'; }
 
 async function renderLogHist() {
   const el = document.getElementById('log-hist');
-  el.innerHTML = skeletonHTML();
+  el.innerHTML = '<div class="skel" style="height:70px"></div>';
   const res = await nAPI('POST', '/v1/databases/' + LOG_DB + '/query', {
     sorts: [{ timestamp: 'created_time', direction: 'descending' }],
     page_size: 20
   });
+  let logs;
   if (!res) {
-    // fallback to local cache
-    const logs = loadLogCache().slice(0, 20);
-    if (!logs.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">📝</div><div class="empty-txt">No logs yet</div></div>'; return; }
-    el.innerHTML = logs.map(l => logCardHTML(l.name, l.grams, l.ts, l.place, l.memo)).join('');
-    return;
+    logs = loadLogCache().slice(0, 20).map(l => ({ name: l.name, grams: l.grams, ts: l.ts, place: l.place, memo: l.memo }));
+    document.getElementById('log-sub').textContent = loadLogCache().length + '件の記録';
+  } else {
+    logs = res.results.map(p => ({
+      name: p.properties['コーヒーの名前']?.title?.[0]?.plain_text || '',
+      grams: p.properties['使用グラム']?.number || null,
+      ts: p.properties['記録日時']?.date?.start || p.created_time,
+      place: p.properties['飲んだ場所']?.select?.name || '',
+      memo: p.properties['ひとことメモ']?.rich_text?.[0]?.plain_text || ''
+    }));
+    document.getElementById('log-sub').textContent = logs.length + '件（最新）';
   }
-  const logs = res.results.map(p => ({
-    name: p.properties['コーヒーの名前']?.title?.[0]?.plain_text || '',
-    grams: p.properties['使用グラム']?.number || null,
-    ts: p.properties['記録日時']?.date?.start || p.created_time,
-    place: p.properties['飲んだ場所']?.select?.name || '',
-    memo: p.properties['ひとことメモ']?.rich_text?.[0]?.plain_text || ''
-  }));
-  document.getElementById('log-sub').textContent = logs.length + '+ records';
-  if (!logs.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">📝</div><div class="empty-txt">No logs yet</div></div>'; return; }
-  el.innerHTML = logs.map(l => logCardHTML(l.name, l.grams, l.ts, l.place, l.memo)).join('');
+  el.innerHTML = logs.length ? logs.map(l => logCardHTML(l.name, l.grams, l.ts, l.place, l.memo)).join('') : '<div class="empty" style="padding:30px 0">まだ記録がありません。</div>';
 }
-
 function logCardHTML(name, grams, ts, place, memo) {
   const d = new Date(ts);
   const ds = `${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
-  return `<div class="log-card">
-    <div class="lc-top"><div class="lc-name">${name}</div>${grams?`<div class="lc-g">${grams}<sub>g</sub></div>`:''}</div>
-    <div class="lc-meta">${[ds,place].filter(Boolean).join(' · ')}</div>
-    ${memo?`<div class="lc-memo">${memo}</div>`:''}
-  </div>`;
+  return `<div class="rec"><div class="t"><b>${esc(name)}</b>${grams ? `<span class="g">${grams}g</span>` : ''}</div>
+    <div class="m">${[ds, place].filter(Boolean).map(esc).join('　')}</div>${memo ? `<div class="n">${esc(memo)}</div>` : ''}</div>`;
 }
 
 document.getElementById('btn-record').addEventListener('click', async () => {
   const bean = selectedBeanId ? stockData.find(b => b.id === selectedBeanId) : null;
   const name = bean ? bean.name : document.getElementById('log-free').value.trim();
-  if (!name) { showToast('Bean name is required'); return; }
+  if (!name) { showToast('豆の名前を入れてください'); return; }
   const grams = (selectedPlace === '家' && window.GramDial && GramDial.value) || null;   // ダイヤルの値（0.5g刻み）
   const memo  = document.getElementById('log-memo').value.trim();
   const entry = { id: 'l'+Date.now(), name, memo, grams, place: selectedPlace, ts: new Date().toISOString(),
     roaster: bean?.roaster||'', roastLevel: bean?.roastLevel||'', process: bean?.process||'' };
+  const btn = document.getElementById('btn-record');
+  btn.textContent = '保存中…'; btn.classList.add('busy');
 
   // 1. 在庫から引く → Notion更新
   if (bean && grams) {
@@ -727,46 +689,53 @@ document.getElementById('btn-record').addEventListener('click', async () => {
     const idx = stockData.findIndex(b => b.id === bean.id);
     if (idx >= 0) { stockData[idx].remainGrams = newG; stockData[idx].status = status; }
   }
-
   // 2. Log → Notion & ローカルキャッシュ
-  const btn = document.getElementById('btn-record');
-  btn.textContent = 'SAVING...'; btn.classList.add('busy');
   const ok = await createLog(entry);
-  btn.textContent = 'RECORD'; btn.classList.remove('busy');
-
+  btn.textContent = '記録する'; btn.classList.remove('busy');
   const cache = loadLogCache(); cache.unshift(entry); saveLogCache(cache);
   document.getElementById('log-memo').value = '';
   document.getElementById('log-free').value = '';
-  document.getElementById('log-sub').textContent = cache.length + ' records total';
-
-  showToast(ok ? 'Saved to Notion ✓' : 'Saved locally');
+  showToast(ok ? 'Notionに保存しました' : 'この端末に保存しました');
   renderLogHist(); renderPicker();
-  if (currentTab === 'stock') loadStock();
 });
 
 // ── NEW BEAN ──
+function chipsToggle(id) {
+  document.getElementById(id).addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    const was = b.classList.contains('on');
+    document.querySelectorAll('#' + id + ' button').forEach(x => x.classList.remove('on'));
+    if (!was) b.classList.add('on');
+  });
+}
+chipsToggle('n-level'); chipsToggle('n-process');
+const chipVal = id => document.querySelector('#' + id + ' .on')?.textContent || '';
+document.getElementById('sc-new').addEventListener('click', e => {
+  const b = e.target.closest('[data-ng]'); if (!b) return;
+  const i = document.getElementById('n-g'); i.value = Math.max(50, (parseInt(i.value) || 0) + +b.dataset.ng);
+});
 document.getElementById('btn-add').addEventListener('click', async () => {
   const name = document.getElementById('n-name').value.trim();
-  if (!name) { showToast('Bean name is required'); return; }
-  const roasterFree = document.getElementById('n-roaster').value.trim();
+  if (!name) { showToast('豆の名前を入れてください'); document.getElementById('n-name').focus(); return; }
   const bean = {
     name,
-    roaster: roasterFree || 'obscura',
+    roaster: document.getElementById('n-roaster').value.trim() || 'obscura',
     roastDate: document.getElementById('n-date').value,
     totalGrams: parseInt(document.getElementById('n-g').value) || 200,
-    roastLevel: document.getElementById('n-level').value,
-    process: document.getElementById('n-process').value,
+    roastLevel: chipVal('n-level'),
+    process: chipVal('n-process'),
     memo: document.getElementById('n-memo').value.trim()
   };
   const btn = document.getElementById('btn-add');
-  btn.textContent = 'SAVING...'; btn.classList.add('busy');
+  btn.textContent = '保存中…'; btn.classList.add('busy');
   const ok = await createStock(bean);
-  btn.textContent = 'ADD TO STOCK'; btn.classList.remove('busy');
-  if (!ok) { showToast('追加失敗 — トークンを確認'); return; }
-  ['n-name','n-g','n-memo','n-roaster'].forEach(id => document.getElementById(id).value = '');
-  ['n-level','n-process'].forEach(id => document.getElementById(id).value = '');
+  btn.textContent = '在庫に追加'; btn.classList.remove('busy');
+  if (!ok) { showToast('追加に失敗しました。トークンを確認してください'); return; }
+  document.getElementById('n-name').value = ''; document.getElementById('n-roaster').value = ''; document.getElementById('n-memo').value = '';
+  document.getElementById('n-g').value = 200;
+  document.querySelectorAll('#n-level button, #n-process button').forEach(x => x.classList.remove('on'));
   document.getElementById('n-date').value = new Date().toISOString().split('T')[0];
-  showToast('Added to Notion ✓');
+  showToast('在庫に追加しました');
   go('stock');
 });
 
@@ -774,41 +743,178 @@ document.getElementById('btn-add').addEventListener('click', async () => {
 async function loadDone() {
   const el = document.getElementById('done-list');
   el.innerHTML = skeletonHTML();
-  if (!getToken()) { el.innerHTML = '<div class="empty"><div class="empty-txt">Notionトークンを設定してください</div></div>'; return; }
+  if (!getToken()) { el.innerHTML = '<div class="empty">Notionのトークンを設定してください。</div>'; return; }
   const beans = await fetchDone();
-  if (!beans) { el.innerHTML = '<div class="empty"><div class="empty-txt">接続エラー</div></div>'; return; }
-  if (!beans.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">📦</div><div class="empty-txt">Nothing archived yet</div></div>'; return; }
+  if (!beans) { el.innerHTML = '<div class="empty">接続エラーです。</div>'; return; }
+  document.getElementById('done-sub').textContent = beans.length + '袋';
+  if (!beans.length) { el.innerHTML = '<div class="empty">使い切った豆はまだありません。</div>'; return; }
   el.innerHTML = beans.map(b => `
-    <div class="done-card">
-      <div class="done-name">${b.name}</div>
-      <div class="done-meta">${[b.roaster,b.roastLevel,b.process,b.totalGrams+'g'].filter(Boolean).join(' · ')}</div>
-      ${b.memo?`<div class="done-memo">${b.memo}</div>`:''}
-      <div class="done-acts">
-        <button class="btn-restore" onclick="restoreBean('${b.id}','${b.totalGrams}')">↩ Restore</button>
-        <button class="btn-del" onclick="delBean('${b.id}')">🗑 Delete</button>
-      </div>
-    </div>`).join('');
+    <div class="dn"><b>${esc(b.name)}</b><div class="m">${[b.roaster, b.roastLevel, b.process, b.totalGrams + 'g'].filter(Boolean).map(esc).join('　')}</div>
+      ${b.memo ? `<div class="memo2" style="margin:-4px 0 12px">${esc(b.memo)}</div>` : ''}
+      <div class="a"><button data-restore="${b.id}" data-total="${b.totalGrams}">在庫に戻す</button><button class="d" data-rm="${b.id}">削除</button></div></div>`).join('');
 }
-
+document.getElementById('done-list').addEventListener('click', e => {
+  const r = e.target.closest('[data-restore],[data-rm]'); if (!r) return;
+  if (r.dataset.restore) restoreBean(r.dataset.restore, r.dataset.total); else delBean(r.dataset.rm);
+});
 async function restoreBean(id, totalGrams) {
-  const ok = await updateStock(id, parseInt(totalGrams)||200, '', 'IN STOCK');
-  if (ok) { loadDone(); showToast('Restored to stock'); }
-  else showToast('更新失敗');
+  const ok = await updateStock(id, parseInt(totalGrams) || 200, '', 'IN STOCK');
+  if (ok) { loadDone(); showToast('在庫に戻しました'); } else showToast('更新に失敗しました');
 }
-
 async function delBean(id) {
   if (!confirm('この豆を削除しますか？')) return;
   const ok = await deleteStock(id);
-  if (ok) { loadDone(); showToast('Deleted'); }
-  else showToast('削除失敗');
+  if (ok) { loadDone(); showToast('削除しました'); } else showToast('削除に失敗しました');
+}
+function showToast(m) { toast(m); }
+
+// ── RECIPES（お気に入りレシピ / この端末に保存）──
+
+const DRIPPERS=['V60','V60 NEO','Kalita','ORIGAMI 円錐','ORIGAMI ウェーブ','Beandy Silk','コーノ','エスプレッソ'];
+const tl=r=>r.tempVar?`${r.steps[0].c}→${r.steps.at(-1).c}`:`${r.temp}`;
+const mmss=s=>Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+const water=r=>Math.round(r.dose*r.ratio);
+function autoSteps(r){const W=water(r),b=Math.round(r.dose*3),T=r.temp,v=r.tempVar;return[{t:0,g:b,n:'蒸らし',c:T},{t:30,g:Math.round(W*.55),n:'1投目',c:v?T-2:T},{t:75,g:W,n:'2投目',c:v?T-5:T}]}
+const RK='bc_recipes_v1';
+function loadR(){try{const a=JSON.parse(localStorage.getItem(RK)||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}}
+function saveR(){try{localStorage.setItem(RK,JSON.stringify(recipes))}catch(e){}}
+let recipes=loadR();
+let filter='all',openId=null,nextId=recipes.reduce((m,r)=>Math.max(m,r.id||0),0)+1,draft=null;
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.k);toast.k=setTimeout(()=>e.classList.remove('on'),1900)}
+const STAR='<svg viewBox="0 0 24 24"><path d="M12 3.2l2.6 5.5 6 .8-4.4 4.2 1.1 6-5.3-2.9-5.3 2.9 1.1-6L3.4 9.5l6-.8z"/></svg>';
+
+/* 注ぎ曲線：横=時間 縦=累計の湯量。注ぐ間は立ち上がり、待つ間は水平 */
+function pts(r,w,h,pad){
+  const W=water(r)||1,E=Math.max(r.end,(r.steps.at(-1)?.t||0)+20);
+  const X=t=>pad+(w-pad*2)*t/E,Y=g=>h-pad-(h-pad*2)*Math.min(g,W)/W;
+  let p=[[X(0),Y(0)]],prev=0,dots=[];
+  r.steps.forEach(s=>{p.push([X(s.t),Y(prev)]);const te=s.t+Math.min(12,Math.max(6,(s.g-prev)/6));p.push([X(te),Y(s.g)]);dots.push({x:X(te),y:Y(s.g),g:s.g,t:s.t});prev=s.g});
+  p.push([X(E),Y(prev)]);
+  return{p,dots,X,Y,E,W};
+}
+const path=p=>p.map((q,i)=>(i?'L':'M')+q[0].toFixed(1)+' '+q[1].toFixed(1)).join('');
+function spark(r){
+  const w=300,h=34,{p}=pts(r,w,h,2),d=path(p),id='g'+r.id+Math.random().toString(36).slice(2,6);
+  return`<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--a)" stop-opacity=".35"/><stop offset="1" stop-color="var(--a)" stop-opacity="0"/></linearGradient></defs>
+  <path d="${d}L${w-2} ${h-2}L2 ${h-2}Z" fill="url(#${id})"/><path d="${d}" fill="none" stroke="var(--a)" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></svg>`;
+}
+function chart(r,h=120){
+  const w=340,{p,dots,X,E,W}=pts(r,w,h,20),d=path(p),id='c'+Math.random().toString(36).slice(2,7);
+  const ticks=[0,.5,1].map(f=>{const t=Math.round(E*f);return`<text x="${X(t)}" y="${h+14}" fill="var(--tx3)" font-size="10" text-anchor="${f===0?'start':f===1?'end':'middle'}" font-family="var(--num)" font-weight="700">${mmss(t)}</text>`}).join('');
+  return`<svg viewBox="0 0 ${w} ${h+20}" role="img" aria-label="注ぎ方の曲線"><defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--a)" stop-opacity=".4"/><stop offset="1" stop-color="var(--a)" stop-opacity="0"/></linearGradient></defs>
+  <line x1="20" x2="${w-20}" y1="${h-20}" y2="${h-20}" stroke="var(--line)"/>
+  <path d="${d}L${w-20} ${h-20}L20 ${h-20}Z" fill="url(#${id})"/><path d="${d}" fill="none" stroke="var(--a)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+  ${dots.map(o=>`<circle cx="${o.x}" cy="${o.y}" r="4.5" fill="var(--bg)" stroke="var(--a)" stroke-width="2.5"/><text x="${Math.min(o.x,w-18)}" y="${o.y-11}" text-anchor="middle" fill="var(--tx)" font-size="11" font-weight="800" font-family="var(--num)">${o.g}</text>`).join('')}${ticks}</svg>`;
 }
 
-// ── TOAST ──
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2200);
+function renderR(){
+  saveR();
+  $('#sub').textContent=`${recipes.length}件　お気に入り ${recipes.filter(r=>r.fav).length}件`;
+  const F=[['all','すべて'],['fav','お気に入り'],['hot','HOT'],['ice','ICE']];
+  $('#bar').innerHTML=F.map(([k,l])=>`<button class="${filter===k?'on':''}" data-f="${k}">${l}</button>`).join('');
+  let L=recipes.filter(r=>filter==='fav'?r.fav:filter==='hot'||filter==='ice'?r.mode===filter:true);
+  L=[...L].sort((a,b)=>b.fav-a.fav||b.id-a.id);
+  $('#list').innerHTML=L.length?L.map(card).join(''):'<div class="empty">'+(recipes.length?'この条件のレシピはありません。':'まだレシピがありません。<br>右下の「登録」から、よく淹れるレシピを残せます。')+'</div>';
 }
+function card(r){
+  const o=openId===r.id;
+  return`<article class="card ${o?'open':''}" data-mode="${r.mode}">
+   <div class="top" data-toggle="${r.id}" role="button" tabindex="0" aria-expanded="${o}">
+     <div class="dose">${r.dose}<small>g</small></div>
+     <div class="nm"><b>${esc(r.name)}</b><div class="meta"><span>${r.dripper}</span><span>1:${r.ratio}</span><span>${tl(r)}℃</span></div></div>
+     <button class="star ${r.fav?'on':''}" data-star="${r.id}" aria-label="${r.fav?'お気に入りを外す':'お気に入りに追加'}" aria-pressed="${r.fav}">${STAR}</button>
+   </div>
+   <div class="spark">${spark(r)}</div>
+   <div class="body">
+     <div class="chart">${chart(r)}</div>
+     <div class="stats"><div><b>${r.dose}g</b><i>粉</i></div><div><b>${water(r)}g</b><i>湯</i></div><div><b>${tl(r)}℃</b><i>湯温</i></div><div><b>${mmss(r.end)}</b><i>時間</i></div></div>
+     <ul class="steps ${r.tempVar?'tv':''}">${r.steps.map(s=>`<li><span class="t">${mmss(s.t)}</span><span class="g">${s.g}g</span><span>${esc(s.n||'')}</span>${r.tempVar?`<span class="c">${s.c}℃</span>`:''}</li>`).join('')}</ul>
+     <div class="note"><b>挽き目</b>Varia VS3　<span style="font:800 15px var(--num);color:var(--tx)">${r.grind.toFixed(1)}</span></div>
+     ${r.memo?`<div class="note"><b>メモ</b>${esc(r.memo)}</div>`:''}
+     <div class="acts"><button class="use" data-use="${r.id}">このレシピで記録</button><button class="ghost" data-edit="${r.id}">編集</button></div>
+   </div></article>`;
+}
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-f],[data-star],[data-toggle],[data-use],[data-edit]');if(!t)return;
+  if(t.dataset.f){filter=t.dataset.f;render()}
+  else if(t.dataset.star){const r=recipes.find(x=>x.id==t.dataset.star);r.fav=!r.fav;renderR();
+    const b=document.querySelector(`[data-star="${r.id}"]`);b.classList.add('pop');setTimeout(()=>b.classList.remove('pop'),200);toast(r.fav?'お気に入りに追加しました':'お気に入りを外しました')}
+  else if(t.dataset.toggle){const id=+t.dataset.toggle;openId=openId===id?null:id;render()}
+  else if(t.dataset.use){const r=recipes.find(x=>x.id==t.dataset.use);go('log');setPlace('家');if(window.GramDial)GramDial.set(r.dose,r.mode,r.ratio);toast(`${r.mode.toUpperCase()} ${r.dose}g 1:${r.ratio} を反映しました`)}
+  else if(t.dataset.edit)openSheet(recipes.find(x=>x.id==t.dataset.edit));
+});
+document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('.top')){e.preventDefault();e.target.click()}if(e.key==='Escape')closeSheet()});
+$('#add').onclick=()=>openSheet();$('#scrim').onclick=closeSheet;
+
+function openSheet(r){
+  if(r)draft=JSON.parse(JSON.stringify(r));
+  else{draft={id:null,name:'',mode:'hot',dripper:'V60',dose:14,ratio:15,temp:92,end:165,grind:7,tempVar:false,memo:'',fav:true,steps:[]};draft.steps=autoSteps(draft)}
+  drawSheet();$('#scrim').classList.add('on');$('#sheet').classList.add('on');
+}
+function closeSheet(){$('#scrim').classList.remove('on');$('#sheet').classList.remove('on')}
+const stp=(k,label,val,unit)=>`<div class="stp"><div class="u">${label}</div><div class="v">${val}<span style="font-size:13px;color:var(--tx3)">${unit}</span></div><div class="b"><button data-adj="${k}:-" aria-label="${label}を減らす">−</button><button data-adj="${k}:+" aria-label="${label}を増やす">＋</button></div></div>`;
+function drawSheet(keepScroll){
+  const sc=$('.sh-body')?.scrollTop||0,d=draft,ed=d.id!=null;
+  $('#sheet').dataset.mode=d.mode;
+  $('#sheet').innerHTML=`<div class="sh-head"><h2>${ed?'レシピを編集':'レシピを登録'}</h2><button class="sh-x" id="f-x" aria-label="閉じる">✕</button></div>
+  <div class="sh-body">
+   <label class="fl" for="f-name">名前</label><input class="fi" id="f-name" placeholder="例：浅煎りエチオピア 王道" value="${esc(d.name)}">
+   <label class="fl">ホット／アイス</label>
+   <div class="seg"><button data-v="hot" class="${d.mode==='hot'?'on':''}">HOT</button><button data-v="ice" class="${d.mode==='ice'?'on':''}">ICE</button></div>
+   <label class="fl">ドリッパー</label>
+   <div class="chips">${DRIPPERS.map(x=>`<button data-dr="${x}" class="${d.dripper===x?'on':''}">${x}</button>`).join('')}</div>
+   <label class="fl">分量と温度</label>
+   <div class="trio" style="${d.tempVar?'grid-template-columns:1fr 1fr':''}">${stp('dose','粉',d.dose.toFixed(1),'g')}${stp('ratio','比率','1:'+d.ratio,'')}${d.tempVar?'':stp('temp','湯温',d.temp,'℃')}</div>
+   <div class="fav" style="margin-top:10px"><span>途中で湯温を変える</span><button class="sw ${d.tempVar?'on':''}" id="f-tv" role="switch" aria-checked="${d.tempVar}" aria-label="途中で湯温を変える"></button></div>
+   <div class="prev"><div class="sum"><span>湯量</span><b>${water(d)}g</b><span>${mmss(d.end)}</span></div>${chart(d,84)}</div>
+   <label class="fl">注ぎ方</label>
+   <div class="rows ${d.tempVar?'tv':''}">
+     <div class="r h"><span>開始(秒)</span><span>累計(g)</span>${d.tempVar?'<span>湯温</span>':''}<span>メモ</span><span></span></div>
+     ${d.steps.map((s,i)=>`<div class="r"><input class="fi" inputmode="numeric" data-s="${i}:t" value="${s.t}" aria-label="開始秒"><input class="fi" inputmode="numeric" data-s="${i}:g" value="${s.g}" aria-label="累計グラム">${d.tempVar?`<input class="fi" inputmode="numeric" data-s="${i}:c" value="${s.c}" aria-label="湯温">`:''}<input class="fi l" data-s="${i}:n" value="${esc(s.n||'')}" placeholder="メモ" aria-label="メモ"><button class="x" data-del="${i}" aria-label="この注ぎを削除">✕</button></div>`).join('')}
+   </div>
+   <div style="display:flex;gap:8px;margin-top:10px"><button class="mini" id="f-addstep">＋ 注ぎを追加</button><button class="mini a" id="f-auto">分量から自動で作る</button></div>
+   <div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px;font-size:13px;color:var(--tx2)"><span>全体の抽出時間　<b style="font:800 16px var(--num);color:var(--tx)">${mmss(d.end)}</b></span><span><button class="mini" data-adj="end:-">−5秒</button> <button class="mini" data-adj="end:+">＋5秒</button></span></div>
+   <label class="fl">挽き目</label>
+   <div class="gr"><div class="top2"><span class="nmv">Varia VS3</span><span class="big" id="gr-v">${d.grind.toFixed(1)}</span></div>
+    <div class="ctl"><button data-g="-0.1" aria-label="0.1細かく">−.1</button><input class="sl" id="f-gr" type="range" min="3" max="14" step="0.1" value="${d.grind}" style="--p:${(d.grind-3)/11*100}%" aria-label="挽き目"><button data-g="0.1" aria-label="0.1粗く">+.1</button></div>
+    <div class="rng"><span>3 細かい</span><span>粗い 14</span></div></div>
+   <label class="fl" for="f-memo">メモ</label><input class="fi" id="f-memo" placeholder="味の感想・次の調整" value="${esc(d.memo)}">
+   <div class="fav"><span>お気に入りに入れる</span><button class="sw ${d.fav?'on':''}" id="f-fav" role="switch" aria-checked="${d.fav}" aria-label="お気に入り"></button></div>
+   ${ed?'<button class="del" id="f-del">このレシピを削除</button>':''}
+  </div>
+  <div class="sh-foot"><button class="use" id="f-save">${ed?'更新する':'登録する'}</button></div>`;
+  if(keepScroll)$('.sh-body').scrollTop=sc;
+}
+function sync(){
+  const g=id=>document.getElementById(id);
+  draft.name=g('f-name').value;draft.memo=g('f-memo').value;
+  document.querySelectorAll('[data-s]').forEach(i=>{const[n,k]=i.dataset.s.split(':');const s=draft.steps[+n];s[k]=k==='n'?i.value:(parseInt(i.value,10)||0)});
+}
+const STEP={dose:.5,ratio:1,temp:1,end:5},MIN={dose:8,ratio:8,temp:70,end:60},MAX={dose:40,ratio:25,temp:100,end:600};
+$('#sheet').addEventListener('click',e=>{
+  const t=e.target.closest('[data-v],[data-dr],[data-adj],[data-del],[data-g],#f-tv,#f-fav,#f-x,#f-save,#f-del,#f-addstep,#f-auto');if(!t)return;
+  sync();
+  if(t.dataset.v)draft.mode=t.dataset.v;
+  else if(t.dataset.dr)draft.dripper=t.dataset.dr;
+  else if(t.dataset.adj){const[k,s]=t.dataset.adj.split(':');draft[k]=Math.min(MAX[k],Math.max(MIN[k],Math.round((draft[k]+(s==='+'?1:-1)*STEP[k])*10)/10))}
+  else if(t.dataset.del!==undefined)draft.steps.splice(+t.dataset.del,1);
+  else if(t.id==='f-addstep'){const l=draft.steps.at(-1);draft.steps.push({t:l?l.t+30:0,g:Math.min(water(draft),(l?l.g:0)+60),n:'',c:l?l.c:draft.temp})}
+  else if(t.id==='f-auto'){draft.steps=autoSteps(draft);toast('分量から作り直しました')}
+  else if(t.dataset.g){draft.grind=Math.min(14,Math.max(3,Math.round((draft.grind+ +t.dataset.g)*10)/10))}
+  else if(t.id==='f-tv'){draft.tempVar=!draft.tempVar;if(draft.tempVar)draft.steps.forEach(s=>s.c=draft.temp);else draft.temp=draft.steps[0]?.c??draft.temp}
+  else if(t.id==='f-fav')draft.fav=!draft.fav;
+  else if(t.id==='f-x'){closeSheet();return}
+  else if(t.id==='f-del'){recipes=recipes.filter(x=>x.id!==draft.id);closeSheet();renderR();toast('削除しました');return}
+  else if(t.id==='f-save'){
+    if(!draft.name.trim()){toast('名前を入れてください');$('#f-name').focus();return}
+    draft.steps.sort((a,b)=>a.t-b.t);if(draft.tempVar)draft.temp=draft.steps[0].c;
+    if(draft.id==null){draft.id=nextId++;recipes.push(draft);openId=draft.id;toast('登録しました')}
+    else{recipes=recipes.map(x=>x.id===draft.id?draft:x);toast('更新しました')}
+    closeSheet();renderR();return}
+  drawSheet(true);
+});
+$('#sheet').addEventListener('input',e=>{if(e.target.id==='f-gr'){const v=Math.round(e.target.value*10)/10;draft.grind=v;$('#gr-v').textContent=v.toFixed(1);e.target.style.setProperty('--p',(v-3)/11*100+'%');return}
+  if(e.target.matches('[data-s]')){sync();const p=$('.prev');if(p){const w=document.createElement('div');w.innerHTML=chart(draft,84);p.lastElementChild.replaceWith(w.firstChild)}}});
 
 // ── GRAM DIAL（ダイヤル式グラム入力 / 0.5g刻み・音・振動つき）──
 // 値は window.GramDial.value で参照する。HOT/ICE・比率は画面上の目安計算用で、Notionには保存しない。
@@ -1022,13 +1128,25 @@ function showToast(msg) {
   });
 
   buildPresets(); render();
-  window.GramDial = { get value() { return value; }, get mode() { return mode; }, get ratio() { return ratio[mode]; } };
+  window.GramDial = {
+    get value() { return value; }, get mode() { return mode; }, get ratio() { return ratio[mode]; },
+    // レシピなど外部から値を入れる
+    set(v, m, r) {
+      if (m === 'hot' || m === 'ice') mode = m;
+      if (Number.isFinite(+v)) value = snap(+v);
+      if (Number.isFinite(+r)) ratio[mode] = clamp(Math.round(+r / R_STEP) * R_STEP, R_MIN, R_MAX);
+      rawAngle = toAngle(value); buildPresets(); lastTick = 0; render(); persist();
+    }
+  };
 })();
 
-updateGdVisibility();
+
 // ── INIT ──
+updateGdVisibility();
+document.getElementById('add').onclick = () => openSheet();
 document.getElementById('n-date').value = new Date().toISOString().split('T')[0];
 updateNStatus();
+renderR();
 loadStock();
 </script>
 </body>
