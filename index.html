@@ -155,6 +155,54 @@ html,body{height:100%;background:var(--bg);color:var(--text-primary);font-family
 /* TOAST */
 .toast{position:fixed;bottom:calc(var(--nav-h)+12px);left:50%;transform:translateX(-50%) translateY(10px);background:var(--espresso);border-radius:10px;padding:10px 20px;font-family:'Space Mono',monospace;font-size:11px;color:#fff;letter-spacing:1px;z-index:60;opacity:0;transition:all .22s;pointer-events:none;white-space:nowrap}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* GRAM DIAL (ダイヤル式グラム入力) */
+.gd{--gd-a:#b07820;--gd-hi:#e0a848;--gd-soft:rgba(176,120,32,.12);position:relative;background:#fff;border:0.5px solid var(--border-mid);border-radius:16px;padding:14px 14px 12px}
+.gd[data-mode="ice"]{--gd-a:#4f8aa6;--gd-hi:#9fd0e6;--gd-soft:rgba(79,138,166,.12)}
+.gd-seg{position:relative;display:grid;grid-template-columns:1fr 1fr;background:var(--bg-sub);border-radius:99px;padding:3px}
+.gd-seg button{position:relative;z-index:1;height:34px;border:0;background:transparent;color:var(--text-secondary);font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;border-radius:99px;cursor:pointer}
+.gd-seg button[aria-checked="true"]{color:#fff;font-weight:700}
+.gd-pill{position:absolute;top:3px;bottom:3px;left:3px;width:calc(50% - 3px);border-radius:99px;background:var(--gd-a);transition:transform .22s cubic-bezier(.2,.8,.2,1),background .22s}
+.gd[data-mode="ice"] .gd-pill{transform:translateX(100%)}
+.gd-dial{position:relative;width:min(100%,300px);aspect-ratio:1;margin:8px auto -26px;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;outline:none;cursor:grab}
+.gd-dial:active{cursor:grabbing}
+.gd-dial svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.gd-ringbg{stroke:#efe8dd}
+.gd-ringfg{stroke:var(--gd-a);transition:stroke .2s}
+.gd-tk{stroke:rgba(26,15,8,.2);transition:stroke .1s}
+.gd-tk.major{stroke:rgba(26,15,8,.45)}
+.gd-tk.on{stroke:var(--gd-a)}
+.gd-lbl{fill:var(--text-muted);font-family:'Space Mono',monospace;font-size:10px}
+.gd-pdot{fill:var(--gd-a);opacity:.6}
+.gd-knob{transform-origin:160px 160px;transition:transform .09s ease-out}
+.gd-dial.dragging .gd-knob{transition:none}
+.gd-kbody{fill:url(#gd-kg);stroke:#120a05;stroke-width:2}
+.gd-grip{stroke:rgba(255,255,255,.06);stroke-width:2}
+.gd-kind{fill:var(--gd-hi);transition:fill .2s}
+.gd-kshadow{opacity:.35;transition:opacity .15s}
+.gd-dial.dragging .gd-kshadow{opacity:.5}
+.gd-center{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;text-align:center}
+.gd-num{font-family:'Bebas Neue',sans-serif;font-size:62px;line-height:.9;color:var(--gd-hi);letter-spacing:1px;font-variant-numeric:tabular-nums;transition:color .2s}
+.gd-unit{font-family:'Bebas Neue',sans-serif;font-size:22px;color:#8a6a4e;margin-left:2px}
+.gd-hint{font-family:'Space Mono',monospace;font-size:9px;color:#b39a80;letter-spacing:2px;margin-top:4px}
+.gd-dial:focus-visible .gd-kbody{stroke:var(--gd-a)}
+.gd-presets{position:relative;z-index:1;display:flex;gap:8px}
+.gd-chip{flex:1;height:36px;border:0.5px solid var(--border-mid);border-radius:99px;background:#fff;color:var(--text-secondary);font-family:'Space Mono',monospace;font-size:11px;cursor:pointer}
+.gd-chip.on{background:var(--espresso);color:#fff;border-color:var(--espresso)}
+.gd-ratio{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:14px;padding-top:12px;border-top:0.5px solid var(--border)}
+.gd-rlabel{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--text-muted)}
+.gd-rbtn{width:34px;height:34px;border-radius:50%;border:0.5px solid var(--border-mid);background:#fff;color:var(--text-primary);font-family:'Space Mono',monospace;font-size:17px;line-height:1;cursor:pointer}
+.gd-rbtn:active{background:var(--bg-sub)}
+.gd-rbtn:disabled{opacity:.3}
+.gd-rval{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--gd-a);min-width:3.6ch;text-align:center;letter-spacing:1px;font-variant-numeric:tabular-nums}
+.gd-rchips{display:flex;justify-content:center;gap:6px;margin-top:8px}
+.gd-rchip{height:26px;padding:0 10px;border-radius:99px;border:0.5px solid var(--border-mid);background:#fff;color:var(--text-muted);font-family:'Space Mono',monospace;font-size:10px;cursor:pointer}
+.gd-rchip.on{border-color:var(--gd-a);color:var(--gd-a);background:var(--gd-soft)}
+.gd-sub{text-align:center;font-family:'Space Mono',monospace;font-size:12px;color:var(--text-secondary);margin-top:10px;min-height:16px}
+.gd-opts{display:flex;justify-content:space-between;margin-top:12px;padding-top:10px;border-top:0.5px solid var(--border);font-family:'Space Mono',monospace;font-size:10px;color:var(--text-muted)}
+.gd-opts label{display:flex;gap:6px;align-items:center;cursor:pointer}
+.gd-opts input{accent-color:var(--gd-a)}
+.gd-haptic{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
 </style>
 </head>
 <body>
@@ -190,9 +238,47 @@ html,body{height:100%;background:var(--bg);color:var(--text-primary);font-family
       </div>
       <div class="fg">
         <label class="fl">Grams used</label>
-        <div style="position:relative">
-          <input class="fi" id="log-g" type="number" placeholder="17" min="1" inputmode="numeric" style="padding-right:36px">
-          <span style="position:absolute;right:14px;top:50%;transform:translateY(-50%);font-family:'Space Mono',monospace;font-size:12px;color:var(--text-muted)">g</span>
+        <div class="gd" id="gd" data-mode="hot">
+          <div class="gd-seg" role="radiogroup" aria-label="ホット/アイス">
+            <div class="gd-pill"></div>
+            <button type="button" role="radio" aria-checked="true" data-mode="hot">HOT</button>
+            <button type="button" role="radio" aria-checked="false" data-mode="ice">ICE</button>
+          </div>
+          <div class="gd-dial" id="gd-dial" role="slider" tabindex="0" aria-label="使用グラム" aria-valuemin="8" aria-valuemax="25" aria-valuenow="14" aria-valuetext="14グラム">
+            <svg viewBox="0 0 320 320" aria-hidden="true">
+              <defs>
+                <radialGradient id="gd-kg" cx="40%" cy="35%" r="75%">
+                  <stop offset="0" stop-color="#4a3220"/><stop offset=".6" stop-color="#2a1a0f"/><stop offset="1" stop-color="#1a0f08"/>
+                </radialGradient>
+                <filter id="gd-sh" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="8" stdDeviation="9" flood-color="#1a0f08" flood-opacity=".45"/></filter>
+              </defs>
+              <path class="gd-ringbg" data-r="bg" fill="none" stroke-width="6" stroke-linecap="round"/>
+              <path class="gd-ringfg" data-r="fg" fill="none" stroke-width="6" stroke-linecap="round"/>
+              <g data-r="ticks"></g>
+              <g data-r="pdots"></g>
+              <circle class="gd-kshadow" cx="160" cy="160" r="96" fill="#1a0f08" filter="url(#gd-sh)"/>
+              <g class="gd-knob" data-r="knob">
+                <circle class="gd-kbody" cx="160" cy="160" r="96"/>
+                <g data-r="grip"></g>
+                <circle class="gd-kind" cx="160" cy="74" r="5"/>
+              </g>
+            </svg>
+            <div class="gd-center"><div><div><span class="gd-num" data-r="num">14.0</span><span class="gd-unit">g</span></div><div class="gd-hint">↻ まわす</div></div></div>
+          </div>
+          <div class="gd-presets" data-r="presets"></div>
+          <div class="gd-ratio" role="group" aria-label="比率">
+            <span class="gd-rlabel">比率</span>
+            <button type="button" class="gd-rbtn" data-r="rminus" aria-label="比率を下げる（濃く）">−</button>
+            <span class="gd-rval" data-r="rval" aria-live="polite">1:15</span>
+            <button type="button" class="gd-rbtn" data-r="rplus" aria-label="比率を上げる（薄く）">+</button>
+          </div>
+          <div class="gd-rchips" data-r="rchips"></div>
+          <div class="gd-sub" data-r="sub"></div>
+          <div class="gd-opts">
+            <label><input type="checkbox" data-r="snd" checked> クリック音</label>
+            <label><input type="checkbox" data-r="vib" checked> 振動</label>
+          </div>
+          <label class="gd-haptic" aria-hidden="true"><input type="checkbox" switch data-r="hs" tabindex="-1"></label>
         </div>
       </div>
       <div class="fg">
@@ -620,14 +706,14 @@ document.getElementById('btn-record').addEventListener('click', async () => {
   const bean = selectedBeanId ? stockData.find(b => b.id === selectedBeanId) : null;
   const name = bean ? bean.name : document.getElementById('log-free').value.trim();
   if (!name) { showToast('Bean name is required'); return; }
-  const grams = parseInt(document.getElementById('log-g').value) || null;
+  const grams = (window.GramDial && GramDial.value) || null;   // ダイヤルの値（0.5g刻み）
   const memo  = document.getElementById('log-memo').value.trim();
   const entry = { id: 'l'+Date.now(), name, memo, grams, place: selectedPlace, ts: new Date().toISOString(),
     roaster: bean?.roaster||'', roastLevel: bean?.roastLevel||'', process: bean?.process||'' };
 
   // 1. 在庫から引く → Notion更新
   if (bean && grams) {
-    const newG = Math.max(0, (bean.remainGrams || 0) - grams);
+    const newG = Math.max(0, Math.round(((bean.remainGrams || 0) - grams) * 10) / 10);   // 0.5g刻みの誤差を丸める
     const pct = newG / bean.totalGrams;
     const status = pct <= 0 ? 'DONE' : pct <= 0.2 ? 'LOW' : 'IN STOCK';
     await updateStock(bean.id, newG, bean.memo, status);
@@ -642,7 +728,6 @@ document.getElementById('btn-record').addEventListener('click', async () => {
   btn.textContent = 'RECORD'; btn.classList.remove('busy');
 
   const cache = loadLogCache(); cache.unshift(entry); saveLogCache(cache);
-  document.getElementById('log-g').value = '';
   document.getElementById('log-memo').value = '';
   document.getElementById('log-free').value = '';
   document.getElementById('log-sub').textContent = cache.length + ' records total';
@@ -717,6 +802,221 @@ function showToast(msg) {
   t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2200);
 }
+
+// ── GRAM DIAL（ダイヤル式グラム入力 / 0.5g刻み・音・振動つき）──
+// 値は window.GramDial.value で参照する。HOT/ICE・比率は画面上の目安計算用で、Notionには保存しない。
+(() => {
+  const root = document.getElementById('gd');
+  const q = (k) => root.querySelector(`[data-r="${k}"]`);
+  const dial = document.getElementById('gd-dial'), knob = q('knob'), num = q('num'), sub = q('sub');
+  const MIN = 8, MAX = 25, STEP = 0.5, SWEEP = 270, START = -SWEEP / 2;
+  const PRESETS = {hot: [8, 13, 14, 20], ice: [15, 16, 18, 20]};
+  const ICE_SHARE = 0.5, R_MIN = 12, R_MAX = 18, R_STEP = 0.5, RATIO_PRESETS = [14, 15, 16, 17];
+  const DETENT_PULL = 0.65;
+  const LS = 'bc_gd_v1';
+  const C = 160, R_RING = 128, R_TICK_IN = 112, R_TICK_OUT = 120, R_LBL = 145;
+  const fmtR = (r) => (Number.isInteger(r) ? r : r.toFixed(1));
+  const clamp = (n, a, b) => Math.min(b, Math.max(a, n));
+  const snap = (v) => clamp(Math.round(v / STEP) * STEP, MIN, MAX);
+
+  // 前回の設定を復元（保存できない環境でも動く）
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(LS) || '{}') || {}; } catch (e) {}
+  let mode = saved.m === 'ice' ? 'ice' : 'hot';
+  let value = snap(Number.isFinite(saved.v) ? saved.v : 14);
+  const ratio = {
+    hot: clamp(Math.round((saved.r && +saved.r.hot || 15) / R_STEP) * R_STEP, R_MIN, R_MAX),
+    ice: clamp(Math.round((saved.r && +saved.r.ice || 15) / R_STEP) * R_STEP, R_MIN, R_MAX),
+  };
+  if (saved.snd === false) q('snd').checked = false;
+  if (saved.vib === false) q('vib').checked = false;
+  function persist() {
+    try { localStorage.setItem(LS, JSON.stringify({v: value, m: mode, r: ratio, snd: q('snd').checked, vib: q('vib').checked})); } catch (e) {}
+  }
+
+  let rawAngle = toAngle(value), dragging = false;
+  function toAngle(v) { return START + ((v - MIN) / (MAX - MIN)) * SWEEP; }
+  function toValue(a) { return MIN + ((a - START) / SWEEP) * (MAX - MIN); }
+  const clampA = (a) => clamp(a, START, START + SWEEP);
+  function pt(r, deg) { const t = (deg - 90) * Math.PI / 180; return [C + r * Math.cos(t), C + r * Math.sin(t)]; }
+  function arc(r, a0, a1) { const [x0, y0] = pt(r, a0), [x1, y1] = pt(r, a1); return `M${x0} ${y0} A${r} ${r} 0 ${a1 - a0 > 180 ? 1 : 0} 1 ${x1} ${y1}`; }
+
+  // 目盛り・ラベル・グリップ
+  const NS = 'http://www.w3.org/2000/svg';
+  const mk = (tag, attrs) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; };
+  q('bg').setAttribute('d', arc(R_RING, START, START + SWEEP));
+  const tickEls = [];
+  for (let i = 0, n = Math.round((MAX - MIN) / STEP); i <= n; i++) {
+    const v = MIN + i * STEP, a = toAngle(v), major = Number.isInteger(v);
+    const [x0, y0] = pt(major ? R_TICK_IN - 4 : R_TICK_IN, a), [x1, y1] = pt(R_TICK_OUT, a);
+    const l = mk('line', {x1: x0, y1: y0, x2: x1, y2: y1, class: 'gd-tk' + (major ? ' major' : ''), 'stroke-width': major ? 2 : 1.2, 'stroke-linecap': 'round'});
+    q('ticks').appendChild(l); tickEls.push(l);
+    if (v % 2 === 0 || v === MAX) {
+      const [lx, ly] = pt(R_LBL, a);
+      const t = mk('text', {x: lx, y: ly + 3.5, 'text-anchor': 'middle', class: 'gd-lbl'}); t.textContent = v; q('ticks').appendChild(t);
+    }
+  }
+  for (let i = 0; i < 36; i++) {
+    const [x0, y0] = pt(84, i * 10), [x1, y1] = pt(94, i * 10);
+    q('grip').appendChild(mk('line', {x1: x0, y1: y0, x2: x1, y2: y1, class: 'gd-grip'}));
+  }
+
+  // 音: 乾いた短い「チッ」（1kHz以下なし・最大25回/秒）。ICEは高め
+  let ctx = null, out = null, lastTick = 0;
+  const bufs = {minor: [], major: [], stop: null};
+  function synth(sr, {dur, modes, tAmp, seed}) {
+    let s = seed; const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647) * 2 - 1;
+    const len = Math.floor(sr * dur), buf = new Float32Array(len), tLen = Math.floor(sr * 0.0003);
+    for (let i = 0; i < len; i++) {
+      const t = i / sr; let x = i < tLen ? rnd() * tAmp * (1 - i / tLen) : 0;
+      for (const m of modes) x += m.amp * Math.exp(-t / m.decay) * Math.sin(2 * Math.PI * m.f * t);
+      buf[i] = x * Math.min(1, (len - i) / (sr * 0.001));
+    }
+    let pk = 0; for (const v of buf) pk = Math.max(pk, Math.abs(v));
+    for (let i = 0; i < len; i++) buf[i] *= 0.8 / pk;
+    return buf;
+  }
+  const toBuf = (arr) => { const b = ctx.createBuffer(1, arr.length, ctx.sampleRate); b.getChannelData(0).set(arr); return b; };
+  function buildSounds() {
+    const sr = ctx.sampleRate;
+    for (let k = 0; k < 6; k++) {
+      const j = 1 + (k - 2.5) * 0.012;
+      bufs.minor.push(toBuf(synth(sr, {dur: 0.004, tAmp: 0.5, seed: 11 + k, modes: [{f: 4800 * j, decay: 0.0009, amp: 0.45}, {f: 7600 * j, decay: 0.0006, amp: 0.2}]})));
+      bufs.major.push(toBuf(synth(sr, {dur: 0.006, tAmp: 0.7, seed: 97 + k, modes: [{f: 3300 * j, decay: 0.0014, amp: 0.55}, {f: 5600 * j, decay: 0.0009, amp: 0.25}]})));
+    }
+    bufs.stop = toBuf(synth(sr, {dur: 0.008, tAmp: 0.6, seed: 5, modes: [{f: 2300, decay: 0.0022, amp: 0.5}, {f: 4100, decay: 0.0012, amp: 0.2}]}));
+  }
+  function unlockAudio() {
+    if (ctx) { if (ctx.state === 'suspended') ctx.resume(); return; }
+    const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+    ctx = new AC({latencyHint: 'interactive'});
+    const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 1200;
+    const master = ctx.createGain(); master.gain.value = 0.85;
+    out = hp; hp.connect(master).connect(ctx.destination); buildSounds();
+  }
+  function play(buf, gain, rate) {
+    const src = ctx.createBufferSource(); src.buffer = buf; src.playbackRate.value = rate;
+    const g = ctx.createGain(); g.gain.value = gain; src.connect(g).connect(out); src.start();
+  }
+  const modePitch = () => (mode === 'ice' ? 1.35 : 1);
+  function click(major, gap) {
+    if (!q('snd').checked || !ctx) return;
+    const fast = clamp((120 - gap) / 80, 0, 1), list = major ? bufs.major : bufs.minor;
+    play(list[(Math.random() * list.length) | 0], (major ? 0.9 : 0.6) * (1 - fast * 0.4) * (mode === 'ice' ? 0.85 : 1), modePitch() * (0.985 + Math.random() * 0.03));
+  }
+  function endStop() { if (q('snd').checked && ctx) play(bufs.stop, 0.7, modePitch()); }
+  function buzz(major) {
+    if (!q('vib').checked) return;
+    if (navigator.vibrate) navigator.vibrate(major ? 9 : 4); else q('hs').click();   // iOS 18+ は switch の切替で触覚
+  }
+  function feedback(v) {
+    const t = performance.now(), gap = t - lastTick; if (gap < 40) return; lastTick = t;
+    const major = Number.isInteger(v); click(major, gap); buzz(major);
+  }
+
+  // 描画
+  function render() {
+    const detentA = toAngle(value);
+    knob.style.transform = `rotate(${dragging ? detentA + (rawAngle - detentA) * (1 - DETENT_PULL) : detentA}deg)`;
+    q('fg').setAttribute('d', value > MIN ? arc(R_RING, START, detentA) : '');
+    num.textContent = value.toFixed(1);
+    tickEls.forEach((t, i) => t.classList.toggle('on', MIN + i * STEP <= value));
+    root.dataset.mode = mode;
+    root.querySelectorAll('.gd-seg button').forEach((b) => b.setAttribute('aria-checked', b.dataset.mode === mode));
+    root.querySelectorAll('.gd-chip').forEach((c) => c.classList.toggle('on', +c.dataset.v === value));
+    const R = ratio[mode], total = Math.round(value * R);
+    q('rval').textContent = `1:${fmtR(R)}`;
+    q('rminus').disabled = R <= R_MIN; q('rplus').disabled = R >= R_MAX;
+    root.querySelectorAll('.gd-rchip').forEach((c) => c.classList.toggle('on', +c.dataset.r === R));
+    if (mode === 'hot') sub.textContent = `湯 ${total}ミリリットル`;
+    else { const ice = Math.round(total * ICE_SHARE); sub.textContent = `湯 ${total - ice}ミリリットル ＋ 氷 ${ice}グラム`; }
+    dial.setAttribute('aria-valuenow', value); dial.setAttribute('aria-valuetext', value + 'グラム');
+    persist();
+  }
+  function setValue(v) {
+    const s = snap(v);
+    if (s !== value) {
+      const dir = Math.sign(s - value), n = Math.round(Math.abs(s - value) / STEP);
+      let crossedMajor = false;
+      for (let k = 1; k <= n; k++) if (Number.isInteger(value + dir * STEP * k)) crossedMajor = true;
+      feedback(crossedMajor ? Math.round(s) : s);
+      value = s;
+    }
+    render();
+  }
+
+  // プリセット（目盛りを1つずつカチカチ送る）
+  let anim = null;
+  function animateTo(target) {
+    clearInterval(anim);
+    anim = setInterval(() => {
+      if (value === target) { clearInterval(anim); return; }
+      setValue(value + Math.sign(target - value) * STEP); rawAngle = toAngle(value);
+    }, 28);
+  }
+  function buildPresets() {
+    q('presets').innerHTML = ''; q('pdots').innerHTML = '';
+    PRESETS[mode].forEach((p) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'gd-chip'; b.textContent = p + 'g'; b.dataset.v = p;
+      b.onclick = () => { unlockAudio(); animateTo(p); };
+      q('presets').appendChild(b);
+      const [x, y] = pt(R_RING, toAngle(p));
+      q('pdots').appendChild(mk('circle', {cx: x, cy: y, r: 2.5, class: 'gd-pdot'}));
+    });
+  }
+  root.querySelectorAll('.gd-seg button').forEach((b) => {
+    b.onclick = () => {
+      if (b.dataset.mode === mode) return;
+      unlockAudio(); mode = b.dataset.mode; buildPresets(); lastTick = 0; feedback(1); render();
+    };
+  });
+
+  // 比率
+  function setRatio(r) {
+    const n = clamp(Math.round(r / R_STEP) * R_STEP, R_MIN, R_MAX);
+    if (n === ratio[mode]) return;
+    unlockAudio(); ratio[mode] = n; lastTick = 0; feedback(Number.isInteger(n) ? 1 : 0.5); render();
+  }
+  q('rminus').onclick = () => setRatio(ratio[mode] - R_STEP);
+  q('rplus').onclick = () => setRatio(ratio[mode] + R_STEP);
+  RATIO_PRESETS.forEach((r) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'gd-rchip'; b.dataset.r = r; b.textContent = '1:' + r;
+    b.onclick = () => setRatio(r); q('rchips').appendChild(b);
+  });
+  q('snd').onchange = q('vib').onchange = persist;
+
+  // ドラッグ（円周方向）
+  let lastPtr = 0, hitEdge = false;
+  function ptrAngle(e) {
+    const r = dial.getBoundingClientRect();
+    return Math.atan2(e.clientX - (r.left + r.width / 2), -(e.clientY - (r.top + r.height / 2))) * 180 / Math.PI;
+  }
+  dial.addEventListener('pointerdown', (e) => {
+    unlockAudio(); clearInterval(anim); dragging = true; dial.classList.add('dragging');
+    dial.setPointerCapture(e.pointerId); lastPtr = ptrAngle(e); rawAngle = toAngle(value); render();
+  });
+  dial.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+    const a = ptrAngle(e); let d = a - lastPtr;
+    if (d > 180) d -= 360; if (d < -180) d += 360;
+    lastPtr = a;
+    const want = rawAngle + d, next = clampA(want), atEdge = next !== want;
+    if (atEdge && !hitEdge) { endStop(); buzz(true); }
+    hitEdge = atEdge; rawAngle = next; setValue(toValue(rawAngle));
+  });
+  const end = () => { if (!dragging) return; dragging = false; hitEdge = false; dial.classList.remove('dragging'); rawAngle = toAngle(value); render(); };
+  dial.addEventListener('pointerup', end); dial.addEventListener('pointercancel', end);
+  dial.addEventListener('wheel', (e) => { e.preventDefault(); unlockAudio(); setValue(value + (e.deltaY < 0 ? STEP : -STEP)); rawAngle = toAngle(value); }, {passive: false});
+  dial.addEventListener('keydown', (e) => {
+    const map = {ArrowRight: STEP, ArrowUp: STEP, ArrowLeft: -STEP, ArrowDown: -STEP, PageUp: 1, PageDown: -1};
+    if (e.key in map) { e.preventDefault(); unlockAudio(); setValue(value + map[e.key]); rawAngle = toAngle(value); }
+  });
+
+  buildPresets(); render();
+  window.GramDial = { get value() { return value; }, get mode() { return mode; }, get ratio() { return ratio[mode]; } };
+})();
 
 // ── INIT ──
 document.getElementById('n-date').value = new Date().toISOString().split('T')[0];
