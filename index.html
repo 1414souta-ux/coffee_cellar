@@ -97,7 +97,7 @@ body[data-tab=recipes] .fab{display:flex}
 .gd-seg button[aria-checked="true"]{color:var(--ink)}
 .gd-pill{position:absolute;top:3px;bottom:3px;left:3px;width:calc(50% - 3px);border-radius:99px;background:var(--gd-a);transition:transform .22s cubic-bezier(.2,.8,.2,1),background .22s}
 .gd[data-mode="ice"] .gd-pill{transform:translateX(100%)}
-.gd-dial{position:relative;width:min(100%,300px);aspect-ratio:1;margin:8px auto -26px;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;outline:none;cursor:grab}
+.gd-dial{position:relative;width:min(100%,300px);aspect-ratio:1;margin:8px auto -26px;touch-action:pan-y;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;outline:none;cursor:grab}
 .gd-dial svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
 .gd-ringbg{stroke:var(--s2)}
 .gd-ringfg{stroke:var(--gd-a);transition:stroke .2s}
@@ -113,6 +113,9 @@ body[data-tab=recipes] .fab{display:flex}
 .gd-grip{stroke:rgba(255,255,255,.06);stroke-width:2}
 .gd-kind{fill:var(--gd-hi);transition:fill .2s}
 .gd-kshadow{opacity:.35}
+.gd-hit{position:absolute;inset:0;border-radius:50%}
+.gd-hit.ring{touch-action:none;z-index:2}
+.gd-hit.knob{inset:14%;touch-action:pan-y;z-index:3}
 .gd-center{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;text-align:center}
 .gd-num{font:800 58px/.95 var(--num);color:var(--gd-hi);letter-spacing:-.03em;font-variant-numeric:tabular-nums;transition:color .2s}
 .gd-unit{font:800 20px var(--num);color:rgba(255,235,210,.55);margin-left:3px}
@@ -310,7 +313,8 @@ input[type=range].sl::-moz-range-thumb{width:20px;height:20px;border-radius:50%;
                 <circle class="gd-kind" cx="160" cy="74" r="5"/>
               </g>
             </svg>
-            <div class="gd-center"><div><div><span class="gd-num" data-r="num">14.0</span><span class="gd-unit">g</span></div><div class="gd-hint">↻ まわす</div></div></div>
+            <div class="gd-center"><div><div><span class="gd-num" data-r="num">14.0</span><span class="gd-unit">g</span></div><div class="gd-hint">外側をまわす／中央は左右</div></div></div>
+            <div class="gd-hit ring" data-r="hitring"></div><div class="gd-hit knob" data-r="hitknob"></div>
           </div>
           <div class="gd-presets" data-r="presets"></div>
           <div class="gd-ratio" role="group" aria-label="比率">
@@ -1126,15 +1130,23 @@ $('#sheet').addEventListener('input',e=>{if(e.target.id==='f-gr'){const v=Math.r
     const r = dial.getBoundingClientRect();
     return Math.atan2(e.clientX - (r.left + r.width / 2), -(e.clientY - (r.top + r.height / 2))) * 180 / Math.PI;
   }
+  // 外側の輪＝円周ドラッグ（縦スクロールより優先）／中央のつまみ＝左右スワイプ（縦はページのスクロールに回す）
+  let dragMode = 'ring', lastX = 0;
+  const X_DEG = 0.9;   // 横1pxあたりの回転角
   dial.addEventListener('pointerdown', (e) => {
     unlockAudio(); clearInterval(anim); dragging = true; dial.classList.add('dragging');
+    dragMode = e.target.closest('.gd-hit.knob') ? 'knob' : 'ring'; lastX = e.clientX;
     dial.setPointerCapture(e.pointerId); lastPtr = ptrAngle(e); rawAngle = toAngle(value); render();
   });
   dial.addEventListener('pointermove', (e) => {
     if (!dragging) return;
-    const a = ptrAngle(e); let d = a - lastPtr;
-    if (d > 180) d -= 360; if (d < -180) d += 360;
-    lastPtr = a;
+    let d;
+    if (dragMode === 'knob') { d = (e.clientX - lastX) * X_DEG; lastX = e.clientX; }
+    else {
+      const a = ptrAngle(e); d = a - lastPtr;
+      if (d > 180) d -= 360; if (d < -180) d += 360;
+      lastPtr = a;
+    }
     const want = rawAngle + d, next = clampA(want), atEdge = next !== want;
     if (atEdge && !hitEdge) { endStop(); buzz(true); }
     hitEdge = atEdge; rawAngle = next; setValue(toValue(rawAngle));
