@@ -633,7 +633,10 @@ document.getElementById('bean-picker').addEventListener('click', e => {
 function setPlace(p) {
   selectedPlace = p;
   document.querySelectorAll('#place button').forEach(c => c.classList.toggle('on', c.dataset.place === p));
+  updateGdVisibility();
 }
+// ダイヤルは「カフェ」のときだけ隠す（家・外では表示）
+function updateGdVisibility() { const w = document.getElementById('gd-wrap'); if (w) w.hidden = selectedPlace === 'カフェ'; }
 document.getElementById('place').addEventListener('click', e => { const b = e.target.closest('[data-place]'); if (b) setPlace(b.dataset.place); });
 
 async function renderLogHist() {
@@ -670,7 +673,7 @@ document.getElementById('btn-record').addEventListener('click', async () => {
   const bean = selectedBeanId ? stockData.find(b => b.id === selectedBeanId) : null;
   const name = bean ? bean.name : document.getElementById('log-free').value.trim();
   if (!name) { showToast('豆の名前を入れてください'); return; }
-  const grams = (window.GramDial && GramDial.value) || null;   // ダイヤルの値（0.5g刻み）
+  const grams = (selectedPlace !== 'カフェ' && window.GramDial && GramDial.value) || null;   // ダイヤルの値（0.5g刻み）
   const memo  = document.getElementById('log-memo').value.trim();
   const entry = { id: 'l'+Date.now(), name, memo, grams, place: selectedPlace, ts: new Date().toISOString(),
     roaster: bean?.roaster||'', roastLevel: bean?.roastLevel||'', process: bean?.process||'' };
