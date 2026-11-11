@@ -76,6 +76,7 @@ body[data-tab=recipes] .fab{display:flex}
 .rec .rl{display:inline-block;font-size:12px;font-weight:700;color:var(--hot);background:var(--s2);border-radius:10px;padding:4px 10px;margin-top:8px}
 .rchip{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--s2);border-radius:14px;padding:10px 14px;margin-top:18px;font-size:13px;font-weight:700;color:var(--hot)}
 .rchip[hidden]{display:none}
+.chips[hidden]{display:none}
 .rchip .rn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rchip button{border:0;background:none;color:var(--tx3);font-size:16px;padding:4px 8px;cursor:pointer}
 .dn{background:var(--s1);border-radius:20px;padding:16px;margin-bottom:10px;opacity:.85}
@@ -287,9 +288,9 @@ input[type=range].sl::-moz-range-thumb{width:20px;height:20px;border-radius:50%;
 <section class="screen" id="sc-log"><div class="head"><h1>記録</h1><p id="log-sub">—</p></div>
  <div class="nb" id="nbar"><i id="ndot"></i><span id="nstatus">—</span><button type="button" onclick="setupNotion()">接続設定</button></div>
  <div class="form">
-  <label class="fl">飲んだ場所</label>
-  <div class="seg" id="place" style="grid-template-columns:repeat(3,1fr)"><button type="button" data-place="家" class="on">家</button><button type="button" data-place="カフェ">カフェ</button><button type="button" data-place="外（職場・移動中など）">外</button></div>
-  <label class="fl">豆</label>
+  <label class="fl">シーン</label>
+  <div class="seg" id="place" style="grid-template-columns:repeat(4,1fr);letter-spacing:.04em"><button type="button" data-place="HOME" class="on">HOME</button><button type="button" data-place="CARRY">CARRY</button><button type="button" data-place="CAFE">CAFE</button><button type="button" data-place="BUY">BUY</button></div>
+  <label class="fl" id="bean-lbl">豆</label>
   <div class="chips" id="bean-picker"></div>
   <input class="fi" id="log-free" placeholder="豆の名前を入力" style="margin-top:10px;display:none">
   <div id="gd-wrap"><label class="fl">使用グラム</label>
@@ -513,7 +514,17 @@ function setupNotion() {
 // ── STATE ──
 let stockData = [];
 let selectedBeanId = null;
-let selectedPlace = '家';
+let selectedPlace = 'HOME';
+// 自分で淹れるシーン（ダイヤル・在庫の引き算あり）／それ以外はお店・商品名の自由入力
+const isSelf = (p = selectedPlace) => p === 'HOME' || p === 'CARRY';
+// 旧データ（家／カフェ／外）の読み替え：外は豆選択あり→CARRY、フリー入力→BUY
+function normPlace(place, roaster) {
+  if (['HOME', 'CARRY', 'CAFE', 'BUY'].includes(place)) return place;
+  if (place === '家') return 'HOME';
+  if (place === 'カフェ') return 'CAFE';
+  if (place && place.startsWith('外')) return roaster ? 'CARRY' : 'BUY';
+  return place || '';
+}
 let editingPageId = null;
 let currentTab = 'stock';
 const TABS = ['stock','log','recipes','new','done'];
@@ -634,7 +645,12 @@ function renderPicker() {
   document.getElementById('bean-picker').innerHTML = active.map(b =>
     `<button type="button" data-sb="${b.id}" class="${selectedBeanId === b.id ? 'on' : ''}">${esc(b.name)}</button>`
   ).join('') + `<button type="button" data-sb="" class="free ${!selectedBeanId ? 'on' : ''}">フリー入力</button>`;
-  document.getElementById('log-free').style.display = selectedBeanId ? 'none' : 'block';
+  const self = isSelf();
+  document.getElementById('bean-picker').hidden = !self;
+  document.getElementById('bean-lbl').textContent = self ? '豆' : 'お店・商品';
+  const fr = document.getElementById('log-free');
+  fr.placeholder = self ? '豆の名前を入力' : 'お店・商品名を入力（例：○○珈琲 ラテ）';
+  fr.style.display = (!self || !selectedBeanId) ? 'block' : 'none';
 }
 document.getElementById('bean-picker').addEventListener('click', e => {
   const b = e.target.closest('[data-sb]'); if (!b) return;
@@ -644,9 +660,10 @@ function setPlace(p) {
   selectedPlace = p;
   document.querySelectorAll('#place button').forEach(c => c.classList.toggle('on', c.dataset.place === p));
   updateGdVisibility();
+  if (typeof renderPicker === 'function' && typeof stockData !== 'undefined') renderPicker();
 }
-// ダイヤルは「カフェ」のときだけ隠す（家・外では表示）
-function updateGdVisibility() { const w = document.getElementById('gd-wrap'); if (w) w.hidden = selectedPlace === 'カフェ'; }
+// ダイヤルは自分で淹れるとき（HOME／CARRY）だけ表示
+function updateGdVisibility() { const w = document.getElementById('gd-wrap'); if (w) w.hidden = !isSelf(); }
 document.getElementById('place').addEventListener('click', e => { const b = e.target.closest('[data-place]'); if (b) setPlace(b.dataset.place); });
 
 async function renderLogHist() {
@@ -658,14 +675,14 @@ async function renderLogHist() {
   });
   let logs;
   if (!res) {
-    logs = loadLogCache().slice(0, 20).map(l => ({ name: l.name, grams: l.grams, ts: l.ts, place: l.place, memo: l.memo }));
+    logs = loadLogCache().slice(0, 20).map(l => ({ name: l.name, grams: l.grams, ts: l.ts, place: normPlace(l.place, l.roaster), memo: l.memo }));
     document.getElementById('log-sub').textContent = loadLogCache().length + '件の記録';
   } else {
     logs = res.results.map(p => ({
       name: p.properties['コーヒーの名前']?.title?.[0]?.plain_text || '',
       grams: p.properties['使用グラム']?.number || null,
       ts: p.properties['記録日時']?.date?.start || p.created_time,
-      place: p.properties['飲んだ場所']?.select?.name || '',
+      place: normPlace(p.properties['飲んだ場所']?.select?.name || '', p.properties['ロースター']?.select?.name || ''),
       memo: p.properties['ひとことメモ']?.rich_text?.[0]?.plain_text || ''
     }));
     document.getElementById('log-sub').textContent = logs.length + '件（最新）';
@@ -692,11 +709,11 @@ function setActiveRecipe(r) {
 document.getElementById('rchip-x').addEventListener('click', () => setActiveRecipe(null));
 
 document.getElementById('btn-record').addEventListener('click', async () => {
-  const bean = selectedBeanId ? stockData.find(b => b.id === selectedBeanId) : null;
+  const bean = (isSelf() && selectedBeanId) ? stockData.find(b => b.id === selectedBeanId) : null;
   const name = bean ? bean.name : document.getElementById('log-free').value.trim();
   if (!name) { showToast('豆の名前を入れてください'); return; }
-  const grams = (selectedPlace !== 'カフェ' && window.GramDial && GramDial.value) || null;   // ダイヤルの値（0.5g刻み）
-  const rc = window.activeRecipe;
+  const grams = (isSelf() && window.GramDial && GramDial.value) || null;   // ダイヤルの値（0.5g刻み）
+  const rc = isSelf() ? window.activeRecipe : null;
   const rLine = rc ? `📖 ${rc.name}｜${rc.dripper} ${rc.dose}g 1:${Math.round(rc.ratio*10)/10} ${rc.temp}℃ 挽目${Number(rc.grind).toFixed(1)}` : '';
   const memo  = [rLine, document.getElementById('log-memo').value.trim()].filter(Boolean).join('\n');
   const entry = { id: 'l'+Date.now(), name, memo, grams, place: selectedPlace, ts: new Date().toISOString(),
@@ -885,7 +902,7 @@ document.addEventListener('click',e=>{
   else if(t.dataset.star){const r=recipes.find(x=>x.id==t.dataset.star);r.fav=!r.fav;renderR();
     const b=document.querySelector(`[data-star="${r.id}"]`);b.classList.add('pop');setTimeout(()=>b.classList.remove('pop'),200);toast(r.fav?'お気に入りに追加しました':'お気に入りを外しました')}
   else if(t.dataset.toggle){const id=+t.dataset.toggle;openId=openId===id?null:id;render()}
-  else if(t.dataset.use){const r=recipes.find(x=>x.id==t.dataset.use);go('log');setPlace('家');if(window.GramDial)GramDial.set(r.dose,r.mode,r.ratio);setActiveRecipe(r);toast(`${r.name} を反映しました`)}
+  else if(t.dataset.use){const r=recipes.find(x=>x.id==t.dataset.use);go('log');setPlace('HOME');if(window.GramDial)GramDial.set(r.dose,r.mode,r.ratio);setActiveRecipe(r);toast(`${r.name} を反映しました`)}
   else if(t.dataset.edit)openSheet(recipes.find(x=>x.id==t.dataset.edit));
 });
 document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('.top')){e.preventDefault();e.target.click()}if(e.key==='Escape')closeSheet()});
