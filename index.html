@@ -283,9 +283,9 @@ input[type=range].sl::-moz-range-thumb{width:20px;height:20px;border-radius:50%;
 <body data-tab="stock">
 <div class="app">
 
-<section class="screen on" id="sc-stock"><div class="head"><h1>ストック</h1><p id="stock-sub">—</p></div><div style="height:14px"></div><div class="list2" id="stock-list"></div></section>
+<section class="screen on" id="sc-stock"><div class="head"><h1>Stock</h1><p id="stock-sub">—</p></div><div style="height:14px"></div><div class="list2" id="stock-list"></div></section>
 
-<section class="screen" id="sc-log"><div class="head"><h1>記録</h1><p id="log-sub">—</p></div>
+<section class="screen" id="sc-log"><div class="head"><h1>Log</h1><p id="log-sub">—</p></div>
  <div class="nb" id="nbar"><i id="ndot"></i><span id="nstatus">—</span><button type="button" onclick="setupNotion()">接続設定</button></div>
  <div class="form">
   <label class="fl">シーン</label>
@@ -344,9 +344,9 @@ input[type=range].sl::-moz-range-thumb{width:20px;height:20px;border-radius:50%;
   <label class="fl" style="margin-top:30px">最近の記録</label><div id="log-hist"></div>
  </div></section>
 
-<section class="screen" id="sc-recipes"><div class="head"><h1>レシピ</h1><p id="sub"></p></div><div class="bar" id="bar"></div><div class="list" id="list"></div></section>
+<section class="screen" id="sc-recipes"><div class="head"><h1>Recipes</h1><p id="sub"></p></div><div class="bar" id="bar"></div><div class="list" id="list"></div></section>
 
-<section class="screen" id="sc-new"><div class="head"><h1>豆を追加</h1><p>在庫に新しい豆を登録します</p></div>
+<section class="screen" id="sc-new"><div class="head"><h1>New Bean</h1><p>在庫に新しい豆を登録します</p></div>
  <div class="form">
   <label class="fl" for="n-name">豆の名前</label><input class="fi" id="n-name" placeholder="例：エチオピア タラトゥ">
   <label class="fl" for="n-roaster">ロースター</label>
@@ -361,7 +361,7 @@ input[type=range].sl::-moz-range-thumb{width:20px;height:20px;border-radius:50%;
   <div class="acts" style="margin-top:24px"><button class="use" id="btn-add">在庫に追加</button></div>
  </div></section>
 
-<section class="screen" id="sc-done"><div class="head"><h1>使い切り</h1><p id="done-sub">—</p></div><div style="height:14px"></div><div class="list2" id="done-list"></div></section>
+<section class="screen" id="sc-done"><div class="head"><h1>Finished</h1><p id="done-sub">—</p></div><div style="height:14px"></div><div class="list2" id="done-list"></div></section>
 </div>
 
 <button class="fab" id="add"><svg viewBox="0 0 18 18"><path d="M9 2v14M2 9h14"/></svg>登録</button>
@@ -898,10 +898,10 @@ function card(r){
 }
 document.addEventListener('click',e=>{
   const t=e.target.closest('[data-f],[data-star],[data-toggle],[data-use],[data-edit]');if(!t)return;
-  if(t.dataset.f){filter=t.dataset.f;render()}
+  if(t.dataset.f){filter=t.dataset.f;renderR()}
   else if(t.dataset.star){const r=recipes.find(x=>x.id==t.dataset.star);r.fav=!r.fav;renderR();
     const b=document.querySelector(`[data-star="${r.id}"]`);b.classList.add('pop');setTimeout(()=>b.classList.remove('pop'),200);toast(r.fav?'お気に入りに追加しました':'お気に入りを外しました')}
-  else if(t.dataset.toggle){const id=+t.dataset.toggle;openId=openId===id?null:id;render()}
+  else if(t.dataset.toggle){const id=+t.dataset.toggle;openId=openId===id?null:id;renderR()}
   else if(t.dataset.use){const r=recipes.find(x=>x.id==t.dataset.use);go('log');setPlace('HOME');if(window.GramDial)GramDial.set(r.dose,r.mode,r.ratio);setActiveRecipe(r);toast(`${r.name} を反映しました`)}
   else if(t.dataset.edit)openSheet(recipes.find(x=>x.id==t.dataset.edit));
 });
