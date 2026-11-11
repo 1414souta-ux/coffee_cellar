@@ -72,7 +72,12 @@ body[data-tab=recipes] .fab{display:flex}
 .rec b{font-size:15px;font-weight:700}
 .rec .g{font:800 20px var(--num);color:var(--hot)}
 .rec .m{font-size:12px;color:var(--tx3);margin-top:4px}
-.rec .n{font-size:13px;color:var(--tx2);margin-top:6px;line-height:1.6}
+.rec .n{font-size:13px;color:var(--tx2);margin-top:6px;line-height:1.6;white-space:pre-line}
+.rec .rl{display:inline-block;font-size:12px;font-weight:700;color:var(--hot);background:var(--s2);border-radius:10px;padding:4px 10px;margin-top:8px}
+.rchip{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--s2);border-radius:14px;padding:10px 14px;margin-top:18px;font-size:13px;font-weight:700;color:var(--hot)}
+.rchip[hidden]{display:none}
+.rchip .rn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rchip button{border:0;background:none;color:var(--tx3);font-size:16px;padding:4px 8px;cursor:pointer}
 .dn{background:var(--s1);border-radius:20px;padding:16px;margin-bottom:10px;opacity:.85}
 .dn b{font-size:15px}.dn .m{font-size:12px;color:var(--tx3);margin:4px 0 12px}
 .dn .a{display:flex;gap:8px}
@@ -332,6 +337,7 @@ input[type=range].sl::-moz-range-thumb{width:20px;height:20px;border-radius:50%;
           <label class="gd-haptic" aria-hidden="true"><input type="checkbox" switch data-r="hs" tabindex="-1"></label>
         </div>
   </div>
+  <div id="rchip" class="rchip" hidden><span class="rn"></span><button type="button" id="rchip-x" aria-label="レシピを外す">✕</button></div>
   <label class="fl" for="log-memo">ひとことメモ</label><input class="fi" id="log-memo" placeholder="味・気分・シーンなど">
   <div class="acts" style="margin-top:22px"><button class="use" id="btn-record">記録する</button></div>
   <label class="fl" style="margin-top:30px">最近の記録</label><div id="log-hist"></div>
@@ -667,18 +673,32 @@ async function renderLogHist() {
   el.innerHTML = logs.length ? logs.map(l => logCardHTML(l.name, l.grams, l.ts, l.place, l.memo)).join('') : '<div class="empty" style="padding:30px 0">まだ記録がありません。</div>';
 }
 function logCardHTML(name, grams, ts, place, memo) {
+  const lines = String(memo || '').split('\n');
+  const rl = lines[0].startsWith('📖') ? lines.shift() : '';
+  const rest = lines.join('\n').trim();
   const d = new Date(ts);
   const ds = `${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
   return `<div class="rec"><div class="t"><b>${esc(name)}</b>${grams ? `<span class="g">${grams}g</span>` : ''}</div>
-    <div class="m">${[ds, place].filter(Boolean).map(esc).join('　')}</div>${memo ? `<div class="n">${esc(memo)}</div>` : ''}</div>`;
+    <div class="m">${[ds, place].filter(Boolean).map(esc).join('　')}</div>${rl ? `<div class="rl">${esc(rl)}</div>` : ''}${rest ? `<div class="n">${esc(rest)}</div>` : ''}</div>`;
 }
+// レシピから記録するときの選択状態（ログ画面にチップ表示）
+window.activeRecipe = null;
+function setActiveRecipe(r) {
+  window.activeRecipe = r || null;
+  const c = document.getElementById('rchip');
+  c.hidden = !r;
+  if (r) c.querySelector('.rn').textContent = '📖 ' + r.name;
+}
+document.getElementById('rchip-x').addEventListener('click', () => setActiveRecipe(null));
 
 document.getElementById('btn-record').addEventListener('click', async () => {
   const bean = selectedBeanId ? stockData.find(b => b.id === selectedBeanId) : null;
   const name = bean ? bean.name : document.getElementById('log-free').value.trim();
   if (!name) { showToast('豆の名前を入れてください'); return; }
   const grams = (selectedPlace !== 'カフェ' && window.GramDial && GramDial.value) || null;   // ダイヤルの値（0.5g刻み）
-  const memo  = document.getElementById('log-memo').value.trim();
+  const rc = window.activeRecipe;
+  const rLine = rc ? `📖 ${rc.name}｜${rc.dripper} ${rc.dose}g 1:${Math.round(rc.ratio*10)/10} ${rc.temp}℃ 挽目${Number(rc.grind).toFixed(1)}` : '';
+  const memo  = [rLine, document.getElementById('log-memo').value.trim()].filter(Boolean).join('\n');
   const entry = { id: 'l'+Date.now(), name, memo, grams, place: selectedPlace, ts: new Date().toISOString(),
     roaster: bean?.roaster||'', roastLevel: bean?.roastLevel||'', process: bean?.process||'' };
   const btn = document.getElementById('btn-record');
@@ -699,6 +719,7 @@ document.getElementById('btn-record').addEventListener('click', async () => {
   const cache = loadLogCache(); cache.unshift(entry); saveLogCache(cache);
   document.getElementById('log-memo').value = '';
   document.getElementById('log-free').value = '';
+  setActiveRecipe(null);
   showToast(ok ? 'Notionに保存しました' : 'この端末に保存しました');
   renderLogHist(); renderPicker();
 });
@@ -864,7 +885,7 @@ document.addEventListener('click',e=>{
   else if(t.dataset.star){const r=recipes.find(x=>x.id==t.dataset.star);r.fav=!r.fav;renderR();
     const b=document.querySelector(`[data-star="${r.id}"]`);b.classList.add('pop');setTimeout(()=>b.classList.remove('pop'),200);toast(r.fav?'お気に入りに追加しました':'お気に入りを外しました')}
   else if(t.dataset.toggle){const id=+t.dataset.toggle;openId=openId===id?null:id;render()}
-  else if(t.dataset.use){const r=recipes.find(x=>x.id==t.dataset.use);go('log');setPlace('家');if(window.GramDial)GramDial.set(r.dose,r.mode,r.ratio);toast(`${r.mode.toUpperCase()} ${r.dose}g 1:${r.ratio} を反映しました`)}
+  else if(t.dataset.use){const r=recipes.find(x=>x.id==t.dataset.use);go('log');setPlace('家');if(window.GramDial)GramDial.set(r.dose,r.mode,r.ratio);setActiveRecipe(r);toast(`${r.name} を反映しました`)}
   else if(t.dataset.edit)openSheet(recipes.find(x=>x.id==t.dataset.edit));
 });
 document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('.top')){e.preventDefault();e.target.click()}if(e.key==='Escape')closeSheet()});
