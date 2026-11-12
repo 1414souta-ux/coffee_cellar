@@ -55,6 +55,31 @@ body[data-tab=recipes] .fab{display:flex}
 .sc-g{font:800 44px/1 var(--num);letter-spacing:-.03em;min-width:62px}
 .sc-g small{font-size:15px;margin-left:2px;color:var(--tx3)}
 .sc-g.low{color:var(--warn)}
+.sc-top{grid-template-columns:auto 1fr 54px}
+.sc .meta .pill{font:700 10px var(--jp);padding:3px 8px}
+.pk{width:54px;height:54px;border-radius:15px;background:var(--s2);overflow:hidden;display:grid;place-items:center;color:var(--tx3);justify-self:end;align-self:center}
+.pk img{width:100%;height:100%;object-fit:cover;display:block}
+.pk svg,.pho svg{stroke:currentColor;stroke-width:1.7;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.pk svg{width:22px;height:22px}
+.pk.none{background:transparent;border:1.5px dashed var(--tick)}
+.pho{position:relative;width:100%;aspect-ratio:4/3;border-radius:22px;overflow:hidden;background:var(--s1);border:1px solid var(--cardbd);margin-top:4px;display:block}
+.pho img{width:100%;height:100%;object-fit:cover;display:block}
+.pho.none{background:transparent;border:2px dashed var(--tick);display:grid;place-items:center;text-align:center;color:var(--tx2);cursor:pointer}
+.pho.none svg{width:32px;height:32px;color:var(--tx3);margin-bottom:6px}
+.pho.none b{display:block;font-size:15px}.pho.none small{font-size:11px;color:var(--tx3)}
+.pho .stamp{position:absolute;left:12px;bottom:12px;background:rgba(26,15,8,.62);color:#fff;font-size:11px;font-weight:700;padding:5px 10px;border-radius:99px;backdrop-filter:blur(6px)}
+.pacts{display:flex;gap:8px;margin-top:8px}
+.pacts label,.pacts button{flex:1;border:1px solid var(--cardbd);background:var(--s1);color:var(--tx);border-radius:14px;padding:11px;font-weight:700;font-size:13px;text-align:center;cursor:pointer;font-family:inherit}
+.pacts{align-items:stretch}
+.pacts label{display:flex;align-items:center;justify-content:center;margin:0;line-height:1.2}
+.pacts button{width:auto;margin:0}
+.pacts .del{flex:none;color:var(--bad);padding:11px 20px}
+input.pfile{display:none}
+#pv{position:fixed;inset:0;z-index:90;background:rgba(14,8,4,.94);display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;padding:16px}
+#pv.on{display:flex}#pv img{max-width:100%;max-height:80vh;border-radius:14px;object-fit:contain}#pv span{color:#fff;font-size:12px;opacity:.75}
+.dn{position:relative}
+.dn.hasph{padding-right:80px}
+.dn .pk{position:absolute;top:14px;right:14px}
 .prog{height:6px;border-radius:3px;background:var(--s2);margin-top:14px;overflow:hidden}
 .prog i{display:block;height:100%;border-radius:3px;background:var(--hot)}
 .prog i.low{background:var(--warn)}
@@ -395,6 +420,7 @@ input[type=range].sl::-moz-range-thumb{width:20px;height:20px;border-radius:50%;
 <div class="sheet" id="sheet" role="dialog" aria-modal="true"></div>
 <div class="scrim" id="mscrim"></div>
 <div class="sheet auto" id="msheet" role="dialog" aria-modal="true"></div>
+<div id="pv"><img alt="パッケージ写真"><span>タップで閉じる</span></div>
 <div class="toast" id="toast" role="status"></div>
 <script>
 // ── CONFIG ──
@@ -568,6 +594,42 @@ document.getElementById('nav').addEventListener('click', e => { const b = e.targ
 const daysSince = d => d ? Math.floor((Date.now() - new Date(d)) / 86400000) : null;
 const skeletonHTML = () => '<div class="skel"></div>'.repeat(3);
 
+// ── PACKAGE PHOTOS（この端末の IndexedDB に保存）──
+const CAM = '<svg viewBox="0 0 24 24"><path d="M4 8.5A1.5 1.5 0 015.5 7h2.2l1.1-1.6A1 1 0 019.6 5h4.8a1 1 0 01.8.4L16.3 7h2.2A1.5 1.5 0 0120 8.5v8a1.5 1.5 0 01-1.5 1.5h-13A1.5 1.5 0 014 16.5z"/><circle cx="12" cy="12.5" r="3.2"/></svg>';
+const photoCache = {};
+const photosReady = (() => new Promise(res => {
+  try {
+    const rq = indexedDB.open('bc_photos', 1);
+    rq.onupgradeneeded = () => rq.result.createObjectStore('p', { keyPath: 'id' });
+    rq.onsuccess = () => {
+      window._pdb = rq.result;
+      const all = rq.result.transaction('p').objectStore('p').getAll();
+      all.onsuccess = () => { all.result.forEach(r => photoCache[r.id] = r); res(); };
+      all.onerror = () => res();
+    };
+    rq.onerror = () => res();
+  } catch (e) { res(); }
+}))();
+function photoWrite(rec) { return new Promise(res => { try { const tx = window._pdb.transaction('p', 'readwrite'); tx.objectStore('p').put(rec); tx.oncomplete = () => res(true); tx.onerror = () => res(false); } catch (e) { res(false); } }); }
+function photoRemove(id) { return new Promise(res => { try { const tx = window._pdb.transaction('p', 'readwrite'); tx.objectStore('p').delete(id); tx.oncomplete = () => res(true); tx.onerror = () => res(false); } catch (e) { res(false); } }); }
+function shrinkImage(file) {
+  return new Promise((res, rej) => {
+    const im = new Image(), url = URL.createObjectURL(file);
+    im.onload = () => {
+      const k = Math.min(1, 900 / Math.max(im.naturalWidth, im.naturalHeight));
+      const c = document.createElement('canvas'); c.width = Math.round(im.naturalWidth * k); c.height = Math.round(im.naturalHeight * k);
+      c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg', 0.8));
+    };
+    im.onerror = () => { URL.revokeObjectURL(url); rej(); };
+    im.src = url;
+  });
+}
+const pkHTML = id => photoCache[id] ? `<span class="pk"><img src="${photoCache[id].data}" alt=""></span>` : `<span class="pk none">${CAM}</span>`;
+const photoDate = ts => { const d = new Date(ts); return `${d.getMonth() + 1}/${d.getDate()} 撮影`; };
+function openViewer(src) { const v = document.getElementById('pv'); v.querySelector('img').src = src; v.classList.add('on'); }
+document.getElementById('pv').addEventListener('click', () => document.getElementById('pv').classList.remove('on'));
+
 // ── STOCK SCREEN ──
 async function loadStock() {
   const el = document.getElementById('stock-list');
@@ -578,6 +640,7 @@ async function loadStock() {
     return;
   }
   const beans = await fetchStock();
+  await photosReady;
   if (!beans) {
     el.innerHTML = '<div class="empty">Notionに接続できませんでした。<br>トークンとプロキシを確認してください。</div>';
     return;
@@ -596,8 +659,8 @@ async function loadStock() {
     const tags = [b.roastLevel, b.process].filter(Boolean);
     return `<div class="sc" data-bean="${b.id}" role="button" tabindex="0">
       <div class="sc-top"><div class="sc-g ${low ? 'low' : ''}">${b.remainGrams}<small>g</small></div>
-        <div class="nm"><b>${esc(b.name)}</b><div class="meta">${b.roaster ? `<span>${esc(b.roaster)}</span>` : ''}${days !== null ? `<span>焙煎から${days}日</span>` : ''}</div></div>
-        <span class="pill ${low ? 'low' : 'ok'}">${low ? '残り少ない' : '在庫あり'}</span></div>
+        <div class="nm"><b>${esc(b.name)}</b><div class="meta">${b.roaster ? `<span>${esc(b.roaster)}</span>` : ''}${days !== null ? `<span>焙煎から${days}日</span>` : ''}<span class="pill ${low ? 'low' : 'ok'}">${low ? '残り少ない' : '在庫あり'}</span></div></div>
+        ${pkHTML(b.id)}</div>
       <div class="prog"><i class="${low ? 'low' : ''}" style="width:${pct}%"></i></div>
       <div class="of"><span>${pct}%</span><span>${b.totalGrams}g入り</span></div>
       ${tags.length ? `<div class="tags">${tags.map(t => `<span>${esc(t)}</span>`).join('')}</div>` : ''}
@@ -617,6 +680,7 @@ function openModal(id) {
   document.getElementById('msheet').innerHTML = `<div style="width:36px;height:4px;border-radius:2px;background:var(--line);margin:10px auto 6px"></div>
     <div class="sh-head"><h2>${esc(b.name)}</h2><button class="sh-x" data-mx="1" aria-label="閉じる">✕</button></div>
     <div class="sh2"><div class="meta" style="margin:0 0 4px">${b.roaster ? `<span>${esc(b.roaster)}</span>` : ''}${days !== null ? `<span>焙煎から${days}日</span>` : ''}</div>
+    ${photoBlock(b.id)}
     <label class="fl">残りグラム</label>
     <div class="bigin"><button data-mg="-1" aria-label="1g減らす">−</button><input id="m-g" type="number" min="0" inputmode="numeric" value="${b.remainGrams}" aria-label="残りグラム"><button data-mg="1" aria-label="1g増やす">＋</button></div>
     <div class="quick"><button data-ms="13">−13g</button><button data-ms="14">−14g</button><button data-ms="16">−16g</button><button data-ms="18">−18g</button></div>
@@ -625,9 +689,20 @@ function openModal(id) {
   document.getElementById('mscrim').classList.add('on');
   document.getElementById('msheet').classList.add('on');
 }
+function photoBlock(id) {
+  const p = photoCache[id];
+  return p
+    ? `<div class="pho" data-pview="1"><img src="${p.data}" alt="パッケージ写真"><span class="stamp">${photoDate(p.at)}</span></div>
+       <div class="pacts"><label>撮り直す<input class="pfile" type="file" accept="image/*"></label><button type="button" class="del" data-pdel="1">削除</button></div>`
+    : `<label class="pho none">${CAM}<span><b>パッケージを撮る</b><small>カメラ／アルバムから選べます</small></span><input class="pfile" type="file" accept="image/*"></label>`;
+}
 function closeModal() { document.getElementById('mscrim').classList.remove('on'); document.getElementById('msheet').classList.remove('on'); editingPageId = null; }
 document.getElementById('mscrim').addEventListener('click', closeModal);
 document.getElementById('msheet').addEventListener('click', e => {
+  const pv = e.target.closest('[data-pview]');
+  if (pv && editingPageId && photoCache[editingPageId]) { openViewer(photoCache[editingPageId].data); return; }
+  const pd = e.target.closest('[data-pdel]');
+  if (pd && editingPageId) { const id = editingPageId; photoRemove(id).then(() => { delete photoCache[id]; reopenPhoto(id); loadStock(); showToast('写真を削除しました'); }); return; }
   const t = e.target.closest('[data-mg],[data-ms],[data-mx],#btn-modal-save,#btn-archive'); if (!t) return;
   const i = document.getElementById('m-g');
   if (t.dataset.mg) i.value = Math.max(0, (parseFloat(i.value) || 0) + +t.dataset.mg);
@@ -635,6 +710,26 @@ document.getElementById('msheet').addEventListener('click', e => {
   else if (t.dataset.mx) closeModal();
   else if (t.id === 'btn-modal-save') saveModal();
   else if (t.id === 'btn-archive') archiveBean();
+});
+function reopenPhoto(id) {
+  // モーダルの写真ブロックだけ差し替える（入力中のグラム・メモは保持）
+  const old = document.querySelector('#msheet .pho, #msheet .pacts');
+  if (!old || editingPageId !== id) return;
+  document.querySelectorAll('#msheet .pho, #msheet .pacts').forEach((n, i) => i ? n.remove() : null);
+  const first = document.querySelector('#msheet .pho');
+  first.outerHTML = photoBlock(id);
+}
+document.getElementById('msheet').addEventListener('change', async e => {
+  if (!e.target.matches('input.pfile') || !editingPageId) return;
+  const f = e.target.files[0]; if (!f) return;
+  const id = editingPageId;
+  try {
+    const data = await shrinkImage(f);
+    const rec = { id, data, at: Date.now() };
+    const ok = await photoWrite(rec);
+    if (!ok) { showToast('写真を保存できませんでした'); return; }
+    photoCache[id] = rec; reopenPhoto(id); loadStock(); showToast('写真を保存しました');
+  } catch (err) { showToast('写真を読み込めませんでした'); }
 });
 async function saveModal() {
   if (!editingPageId) return;
@@ -815,12 +910,14 @@ async function loadDone() {
   if (!beans) { el.innerHTML = '<div class="empty">接続エラーです。</div>'; return; }
   document.getElementById('done-sub').textContent = beans.length + '袋';
   if (!beans.length) { el.innerHTML = '<div class="empty">使い切った豆はまだありません。</div>'; return; }
+  await photosReady;
   el.innerHTML = beans.map(b => `
-    <div class="dn"><b>${esc(b.name)}</b><div class="m">${[b.roaster, b.roastLevel, b.process, b.totalGrams + 'g'].filter(Boolean).map(esc).join('　')}</div>
+    <div class="dn ${photoCache[b.id] ? 'hasph' : ''}">${photoCache[b.id] ? `<span class="pk" data-dview="${b.id}"><img src="${photoCache[b.id].data}" alt=""></span>` : ''}<b>${esc(b.name)}</b><div class="m">${[b.roaster, b.roastLevel, b.process, b.totalGrams + 'g'].filter(Boolean).map(esc).join('　')}</div>
       ${b.memo ? `<div class="memo2" style="margin:-4px 0 12px">${esc(b.memo)}</div>` : ''}
       <div class="a"><button data-restore="${b.id}" data-total="${b.totalGrams}">在庫に戻す</button><button class="d" data-rm="${b.id}">削除</button></div></div>`).join('');
 }
 document.getElementById('done-list').addEventListener('click', e => {
+  const dv = e.target.closest('[data-dview]'); if (dv && photoCache[dv.dataset.dview]) { openViewer(photoCache[dv.dataset.dview].data); return; }
   const r = e.target.closest('[data-restore],[data-rm]'); if (!r) return;
   if (r.dataset.restore) restoreBean(r.dataset.restore, r.dataset.total); else delBean(r.dataset.rm);
 });
@@ -831,7 +928,7 @@ async function restoreBean(id, totalGrams) {
 async function delBean(id) {
   if (!confirm('この豆を削除しますか？')) return;
   const ok = await deleteStock(id);
-  if (ok) { loadDone(); showToast('削除しました'); } else showToast('削除に失敗しました');
+  if (ok) { photoRemove(id); delete photoCache[id]; loadDone(); showToast('削除しました'); } else showToast('削除に失敗しました');
 }
 function showToast(m) { toast(m); }
 
